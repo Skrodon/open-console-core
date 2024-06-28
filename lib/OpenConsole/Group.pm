@@ -37,12 +37,10 @@ sub create($%)
 	$self;
 }
 
-sub fromDB($)
-{	my ($class, $data) = @_;
-	$data->{timezone}   ||= 'GMT';   #XXX remove at next restart of the db
-	$data->{members}[0]{is_admin} = 1;   #XXX remove at next restart of the db
-	$class->SUPER::fromDB($data);
-}
+#sub fromDB($)
+#{	my ($class, $data) = @_;
+#	$class->SUPER::fromDB($data);
+#}
 
 #-------------
 =section Attributes
@@ -68,48 +66,6 @@ sub postal()     { $_[0]->_data->{postal} }
 sub timezone()   { $_[0]->_data->{timezone} }
 
 sub link()       { '/dashboard/group/' . $_[0]->groupId }
-
-#-------------
-=section Invited Members
-=cut
-
-#XXX move this all to lib/OwnerConsole/Controller/Groups.pm
-
-sub inviteMember($$%)
-{	my ($self, $identity, $email, %args) = @_;
-	my $invite  = OwnerConsole::Group::Invite->create($identity, $self, $email);
-	$::app->batch->saveInvite($invite);
-	$invite;
-}
-
-sub invite($)
-{	my ($self, $token) = @_;
-	defined $token or return ();
-	first { lc($_->token) eq lc($token) } $self->invites;
-}
-
-sub invites()
-{	my $self = shift;
-	$self->{OG_invites} ||= [ $::app->batch->invitesForGroup($self) ];
-	@{$self->{OG_invites}};
-}
-
-sub extendInvitation($)
-{	my ($self, $token) = @_;
-	my $invite = $self->invite($token) or return;
-	$invite->extend;
-	$invite->save;
-}
-
-sub removeInvitation($)
-{	my ($self, $token) = @_;
-	delete $self->{OG_invites};
-	my $invite = $self->invite($token) or return 1;
-	return 0 if $invite->state eq 'spam';
-
-	$::app->batch->removeInvite($token);
-	1;
-}
 
 #-------------
 =section Accepted Members

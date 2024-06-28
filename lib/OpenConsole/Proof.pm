@@ -22,9 +22,9 @@ sub create($%)
 {	my ($class, $insert, %args) = @_;
 	$insert->{schema} or panic;
 	$insert->{set}       = $class->set;
-	$insert->{algorithm} = $class->algo;
 	$insert->{proofid}   = 'new';
 	$insert->{status}    = 'unproven';
+	$insert->{score}     = 0;
 
 	my $owner = delete $insert->{owner} or panic;
 	$insert->{ownerid}   = $owner->ownerId;
@@ -51,22 +51,20 @@ sub fromDB($)
 # Must be extended
 sub set()     { ... }
 sub element() { ... }
-sub algo()    { ... }
 sub sort()    { ... }
-sub _score()  { ... }
 
-sub schema()     { $_[0]->_data->{schema} }
-sub score()      { $_[0]->{OP_score} //= $_[0]->status eq 'proven' ? $_[0]->_score : 0 }
+sub isNew()      { $_[0]->proofId eq 'new' }
 
 # Keep these attributes in sync with the OwnerConsole/Controller/Proof.pm
 # method submit_group()
 
-sub isNew()      { $_[0]->proofId eq 'new' }
-sub proofId()    { $_[0]->_data->{proofid} }
-sub ownerId()    { $_[0]->_data->{ownerid} }
-sub ownerClass() { $_[0]->_data->{ownerclass} }
-sub prover()     { $_[0]->_data->{prover} }
 sub algorithm()  { $_[0]->_data->{algorithm} }
+sub ownerClass() { $_[0]->_data->{ownerclass} }
+sub ownerId()    { $_[0]->_data->{ownerid} }
+sub proofId()    { $_[0]->_data->{proofid} }
+sub prover()     { $_[0]->_data->{prover} }
+sub schema()     { $_[0]->_data->{schema} }
+sub score()      { $_[0]->_data->{score} }
 sub status()     { $_[0]->_data->{status} }
 
 sub expires()
@@ -131,33 +129,6 @@ sub changeOwner($$)
 {	my ($self, $account, $ownerid) = @_;
 	$self->setData(ownerid => $ownerid);
 	delete $self->{OP_owner};
-}
-
-#-------------
-=section Status
-=cut
-
-my %status = (    # translatable name, bg-color
-	unproven => [ __"Unproven",   'warning' ],
-	verify   => [ __"Verifying",  'info'    ],
-	refresh  => [ __"Refreshing", 'info'    ],
-	proven   => [ __"Proven",     'success' ],
-	expired  => [ __"Expired",    'dark'    ],
-);
-
-sub statusText(;$)
-{	my $self  = shift;
-	my $label = shift // $self->status;
-	my $repr  = $status{$label} or return "XX${label}XX";
-	$repr->[0]->toString;
-}
-
-# Returns a badge color class: https://getbootstrap.com/docs/5.3/components/badge/
-sub statusBgColorClass(;$)
-{	my $self  = shift;
-	my $label = shift // $self->status;
-	my $repr  = $status{$label} or return 'text-bg-danger';
-	'text-bg-' . $repr->[1];
 }
 
 sub setStatus($)

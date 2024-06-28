@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2024 Mark Overmeer <mark@open-console.eu>
 # SPDX-License-Identifier: EUPL-1.2-or-later
 
-package OpenConsole::Proof::Contract1;
+package OpenConsole::Proof::Contract;
 use Mojo::Base 'OpenConsole::Proof';
 
 use Log::Report 'open-console-core';
@@ -34,14 +34,11 @@ sub create($%)
 =section Attributes
 =cut
 
+sub schema() { CONTRACT_SCHEMA }
 sub set()    { 'contracts' }
 sub element(){ 'contract'  }
-sub algo()   { 'contract1' }
+
 sub sort()   { lc $_[0]->_data->{name} }
-sub _score() { 100 }
-
-sub schema() { CONTRACT_SCHEMA }
-
-sub name()    { $_[0]->_data->{name} }
+sub name()   { $_[0]->_data->{name} }
 
 1;

@@ -11,14 +11,14 @@ use Log::Report 'open-console-core';
 
 use Scalar::Util    qw(blessed);
 
-use OpenConsole::Proof::EmailAddr1 ();
-use OpenConsole::Proof::Website1   ();
-use OpenConsole::Proof::Contract1  ();
+use OpenConsole::Proof::EmailAddr ();
+use OpenConsole::Proof::Website   ();
+use OpenConsole::Proof::Contract  ();
 
 my %proofclass = (
-	emailaddr1 => 'OpenConsole::Proof::EmailAddr1',
-	website1   => 'OpenConsole::Proof::Website1',
-	contract1  => 'OpenConsole::Proof::Contract1',
+	emailaddrs => 'OpenConsole::Proof::EmailAddr',
+	websites   => 'OpenConsole::Proof::Website',
+	contracts  => 'OpenConsole::Proof::Contract',
 );
 
 =chapter DESCRIPTION
@@ -50,8 +50,8 @@ sub ownedByGroup()    { $_[0]->owner->isa('OpenConsole::Group')    }
 
 sub proofFromDB($)
 {	my ($thing, $data) = @_;
-	my $algo  = $data->{algorithm};
-	my $class = $proofclass{$algo} or panic "Unknown proof algorithm $algo";
+	my $set   = $data->{set};
+	my $class = $proofclass{$set} or panic "Unknown proof set '$set'";
 	$class->fromDB($data);
 }
 

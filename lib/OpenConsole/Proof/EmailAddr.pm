@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2024 Mark Overmeer <mark@open-console.eu>
 # SPDX-License-Identifier: EUPL-1.2-or-later
 
-package OpenConsole::Proof::EmailAddr1;
+package OpenConsole::Proof::EmailAddr;
 use Mojo::Base 'OpenConsole::Proof';
 
 use Log::Report 'open-console-core';
@@ -33,15 +33,12 @@ sub create($%)
 =section Attributes
 =cut
 
-sub set()    { 'emailaddrs' }
-sub element(){ 'emailaddr'  }
-sub algo()   { 'emailaddr1' }
-sub sort()   { lc $_[0]->_data->{email} }
-sub _score() { 50 }
+sub schema()  { ADDR1_SCHEMA }
+sub set()     { 'emailaddrs' }
+sub element() { 'emailaddr'  }
+sub sort()    { lc $_[0]->_data->{email} }
 
-sub schema() { ADDR1_SCHEMA }
-
-sub email()  { $_[0]->_data->{email} }
+sub email()   { $_[0]->_data->{email} }
 sub supportsSubAddressing() { $_[0]->_data->{sub_addressing} }
 
 1;

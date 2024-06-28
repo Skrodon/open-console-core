@@ -6,7 +6,7 @@ use ExtUtils::MakeMaker;
 use 5.016;
 
 WriteMakefile
- ( NAME     => 'OpenConsole'
+ ( NAME     => 'Open-Console-Core'
  , VERSION  => '0.01'
 
  , PREREQ_PM    => { 

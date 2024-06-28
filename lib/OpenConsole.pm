@@ -7,7 +7,6 @@ use Mojo::Base 'Mojolicious';
 use Log::Report 'open-console-core';
 
 use feature 'state';
-use Mango;
 
 use List::Util  qw(first);
 
@@ -15,9 +14,7 @@ use OpenConsole::Util          qw(reseed_tokens);
 use OpenConsole::Model::Users  ();
 use OpenConsole::Model::Proofs ();
 
-my (%dbconfig, %_dbservers);
-my @databases = qw/userdb batchdb proofdb/;
-
+use Mango;
 use constant
 {	MONGODB_CONNECT => 'mongodb://localhost:27017',
 };
@@ -28,6 +25,7 @@ OpenConsole - Open Console
 
 =chapter SYNOPSIS
 
+  # This is a base class, so instantiate extensions
   morbo script/owner_console &
 
 =chapter DESCRIPTION
@@ -51,34 +49,42 @@ The C<proofs> database (M<OpenConsole::Model::Proofs>) contains the proof
 and contract administration.  Less important than the C<users> database information.
 =cut
 
-sub _dbserver($)  # server connections shared, when databases on same server
-{	my $server = $_[1] || MONGODB_CONNECT;
-	$_dbservers{$server} ||= Mango->new($server);
+my %_dbservers;
+sub _mango($)  # server connections shared, when databases on same server
+{	my ($self, $class, $model) = @_;
+	my $config = $self->config($model);
+    my $server = $config->{server} || MONGODB_CONNECT;
+	my $client = $_dbservers{$server} ||= Mango->new($server);
+	$class->new(db => $client->db($config->{dbname}));
 }
 
 sub users()
-{	my $self   = shift;
-	my $config = $dbconfig{userdb};
-	state $u   = OpenConsole::Model::Users->new(db => $self->_dbserver($config->{server})->db($config->{dbname}))->upgrade;
+{	my $self = shift;
+	state $u = $self->_mango('OpenConsole::Model::Users' => $self->config->{userdb});
 }
 
 sub proofs()
-{	my $self   = shift;
-	my $config = $dbconfig{proofdb};
-	state $p   = OpenConsole::Model::Proofs->new(db => $self->_dbserver($config->{server})->db($config->{dbname}))->upgrade;
+{	my $self = shift;
+	state $u = $self->_mango('OpenConsole::Model::Proofs' => $self->config->{proofdb});
 }
 
 #----------------
-=section Other
+=section Running the daemons
 
 =method isAdmin $account
 =cut
 
 my %admins;   # emails are case insensitive
+sub isAdmin($) { $admins{lc $_[1]->email} }
 
-# This method will run once at server start
+=method startup
+This method will run once at server start.
+=cut
+
 sub startup
 {	my $self = shift;
+
+	ref $self ne __PACKAGE__ or panic "You must instantiate extensions.";
 	$main::app = $self;  #XXX probably not the right way
 
 	# Load configuration from hash returned by config file
@@ -88,34 +94,19 @@ sub startup
 	### Configure the application
 	$self->secrets($config->{secrets});
 
-	$dbconfig{$_}    = $config->{$_} for @databases;
+	%admins = map +(lc($_) => 1), @{$config->{admins} || []};
+
+	$self->users->upgrade;
+	$self->proofs->upgrade;
 
 #$::app->users->db->collection('accounts')->remove({});  #XXX hack clean whole accounts table
-
-	# 'user' is the logged-in user, the admin can select to show a different 'account'
-	$self->helper(user      => sub {
-		my $c = shift;
-		my $user;
-		unless($user = $c->stash('user'))
-		{	$user = $self->users->account($c->session('userid'));
-			$c->stash(user => $user);
-		}
-		$user;
-	});
-
-	$self->helper(account   => sub {
-		my $c = shift;
-		my $account;
-		unless($account = $c->stash('account'))
-		{	my $aid = $c->session('account');
-			$account = defined $aid ? $self->users->account($aid) : $c->user;
-			$c->stash(account => $account);
-		}
-		$account;
-	});
 
 	srand;
 	Mojo::IOLoop->timer(0 => sub { srand; reseed_tokens });
 }
+
+#----------------
+=section Other
+=cut
 
 1;

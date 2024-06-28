@@ -1,11 +1,12 @@
 # SPDX-FileCopyrightText: 2024 Mark Overmeer <mark@open-console.eu>
 # SPDX-License-Identifier: EUPL-1.2-or-later
 
-package OpenConsole::Proof::Website1;
+package OpenConsole::Proof::Website;
 use Mojo::Base 'OpenConsole::Proof';
 
 use Log::Report 'open-console-core';
 
+use OpenConsole::Util qw(new_token);
 use Net::LibIDN  qw(idn_to_unicode);
 use Encode       qw(decode);
 
@@ -35,15 +36,13 @@ sub create($%)
 =section Attributes
 =cut
 
+sub schema() { WEB1_SCHEMA }
 sub set()    { 'websites' }
 sub element(){ 'website'  }
-sub algo()   { 'website1' }
 sub sort()   { lc $_[0]->_data->{url} }
-sub _score() { 50 }
 
-sub schema() { WEB1_SCHEMA }
-
-sub url()    { $_[0]->_data->{url} }
+sub url()       { $_[0]->_data->{url} }
+sub challenge() { $_[0]->_data->{challenge} ||= new_token 'C' }
 
 sub urlUnicode
 {	my $self = shift;
