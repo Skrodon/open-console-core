@@ -4,7 +4,7 @@
 package OpenConsole::Session::Task;
 use Mojo::Base 'OpenConsole::Session';
 
-use Log::Report 'open-console-owner';
+use Log::Report 'open-console-owner', import => [ qw/__x/ ];
 
 use OpenConsole::Util qw(val_line);
 
@@ -36,18 +36,20 @@ are passed to M<new()>.
 =cut
 
 sub job($$)
-{	my ($class, $jobid) = (shift, shift);
-	my $job  = $::app->minion->job($jobid);
+{	my ($class, $job) = (shift, shift);
 
 	unless($job)
 	{	my $self = $class->create;
-		$self->internalError(__x"Job {id} disappeared.", id => $jobid);
+		$self->internalError(__x"Job {id} disappeared.", id => $job->id);
 		return $self;
 	}
 
+	my $info = $job->info;
 use Data::Dumper;
-warn "JOB $jobid RETURNED=", Dumper $job->info;
-	$class->create($job->info->{result}, jobId => $jobid, @_);
+warn "JOB ", $job->id, " RETURNED=", Dumper $info;
+	my $self = $class->create($info->{result}, jobId => $job->id, @_);
+	$self->setData(finished => $info->{finished});
+	$self;
 }
 
 =c_method fromResponse $json, %options
@@ -82,6 +84,13 @@ sub id()
 {	my $self = shift;
 	$self->server->{label} . '-' . $self->jobId;
 }
+
+=method finished
+Returns the timestamp (task server time) when this job has finished.  It will
+be C<false> when the job has not finished yet.
+=cut
+
+sub finished() { $_[0]->_data->{finished} }
 
 #------------------
 =section Collecting the answer

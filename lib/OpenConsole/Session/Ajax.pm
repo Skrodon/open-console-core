@@ -4,7 +4,7 @@
 package OpenConsole::Session::Ajax;
 use Mojo::Base 'OpenConsole::Session';
 
-use Log::Report 'open-console-owner';
+use Log::Report 'open-console-owner', import => [ qw/__x/ ];
 
 use OpenConsole::Util qw(val_line);
 
@@ -158,17 +158,15 @@ sub mergeTaskResults($)
 use Data::Dumper;
 warn "MERGING", Dumper $to, $from;
 	push @{$to->{$_}}, @{$from->{$_}} for qw/warnings errors notifications internal_errors trace/;
-	$to->{results} = $from->{results};
 	$self;
 }
 
-sub showTrace(%)
-{	my ($self, %args) = @_;
-	my @trace = @{$self->trace};
-	@trace or return [];
+sub showTrace($%)
+{	my ($self, $trace, %args) = @_;
+	$trace && @$trace or return [];
 
 	my @lines;
-	my $first = shift @trace;
+	my ($first, @trace) = @$trace;
 	my $start = DateTime->from_epoch(epoch => $first->[0]);
 	my $tz    = $self->account->timezone;
 	$start->set_time_zone($tz) if $tz;
