@@ -14,14 +14,13 @@ use Data::Dumper;
 $Data::Dumper::Indent = 1;
 sub fromDB($)
 {	my ($class, $data) = @_;
-delete $data->{logging};   #XXX remove after restart of the DBs
 	$class->new(_data => $data);
 }
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
 	$insert->{created} = Mango::BSON::Time->new;
-	$class->new(_data => $insert);
+	$class->new(_data => $insert, %args);
 }
 
 #------------------------
@@ -36,7 +35,7 @@ sub created() { my $c = $_[0]->_data->{created}; $c ? $c->to_datetime : undef }
 
 has _data => sub { +{} };
 
-sub toDB() { $_[0]->_data }  #XXX might become more complex later
+sub toDB()       { $_[0]->_data }  #XXX might become more complex later
 
 sub changed()    { ++$_[0]->{OP_changed} }
 sub hasChanged() { !! $_[0]->{OP_changed} }
@@ -59,6 +58,15 @@ warn "CHANGED $field to " . ($value // 'undef');
 	}
 
 	$changes;
+}
+
+sub pushData($@)
+{	my ($self, $queue) = (shift, shift);
+	@_ or return;
+
+	my $array = $self->_data->{$queue} ||= [];
+	push @$array, @_;
+	$self->changed;
 }
 
 #------------------------

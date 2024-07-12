@@ -2,12 +2,14 @@
 # SPDX-License-Identifier: EUPL-1.2-or-later
 
 package OpenConsole::Session;
-use Mojo::Base -base;
+use Mojo::Base 'OpenConsole::Mango::Object';
 
-use Log::Report  'open-console-core';
+use Log::Report  'open-console-core', import => [ ];  # 'trace' name conflict
 
 use Scalar::Util qw(blessed);
 use Time::HiRes  qw(time);
+
+my @messages = qw/warnings errors notifications internal_errors trace/;
 
 =chapter NAME
 
@@ -32,16 +34,24 @@ response, hence objects will not survive.
 =section Constructors
 =cut
 
-sub new(@) { my $self = shift->SUPER::new(@_); $self->start; $self }
+sub create(;$%)
+{	my $class = shift;
+	my $data  = shift // { };
+	$data->{$_} ||= [ ] for @messages;
+	$class->SUPER::create($data, @_);
+}
 
 #------------------
 =section Attributes
 
 =cut
 
-has _data => sub {  +{ warnings => [], errors => [], notifications => [], internal_errors => [], trace => [] } };
 has lang  => sub { ... };
-has start => sub { $_[0]->_data->{start} = time };
+has controller => sub { panic(join '#', caller) };
+
+sub results() { $_[0]->_data->{results} }
+
+sub trace()   { $_[0]->_data->{trace} || [] }
 
 #------------------
 =section Collecting the answer
@@ -49,59 +59,58 @@ has start => sub { $_[0]->_data->{start} = time };
 
 sub addError($$)
 {	my ($self, $field, $error) = @_;
-	push @{$self->_data->{errors}}, [ $field => blessed $error ? $error->toString($self->lang) : $error ];
+	$self->pushData(errors => [ $field => blessed $error ? $error->toString($self->lang) : $error ]);
 }
 
 sub hasErrors() { scalar @{$_[0]->_data->{errors}} }
 
 sub addWarning($$)
 {	my ($self, $field, $warn) = @_;
-	push @{$self->_data->{warnings}}, [ $field => blessed $warn ? $warn->toString($self->lang) : $warn ];
+	$self->pushData(warnings => [ $field => blessed $warn ? $warn->toString($self->lang) : $warn ]);
 }
 
 sub notify($$)
 {	my ($self, $level, $msg) = @_;
 	# Hopefully, later we can have nicer notifications than a simple alert.
 	my $text = blessed $msg ? $msg->toString($self->lang) : $msg;
-	push @{$self->_data->{notifications}}, "$level: $text";
-}
-
-sub addOtherData($$)
-{	my ($self, $key, $value) = @_;
-	$self->_data->{$key} = $value;
+	$self->pushData(notifications => "$level: $text");
 }
 
 sub internalError($)
 {	my ($self, $error) = @_;
-	push @{$self->_data->{internal_errors}}, blessed $error ? $error->toString($self->lang) : $error;
+	$self->pushData(internal_errors => blessed $error ? $error->toString($self->lang) : $error);
 }
 
 sub hasInternalErrors() { scalar @{$_[0]->_data->{internal_errors}} }
 
+=method isHappy
+Returns true when there are no errors collected.
+=cut
+
 sub isHappy() { ! $_[0]->hasErrors && ! $_[0]->hasInternalErrors }
+
+=method redirect $url
+Ask the browser logic to redirect the user page to the given $location.
+=cut
+
+sub redirect($)
+{	my ($self, $location) = @_;
+	$self->setData(redirect => $location);
+}
+
+=method reply
+=cut
+
+sub reply()
+{	my $self = shift;
+	$self->controller->render(json => $self->_data);
+}
 
 #------------------
 =section Trace
 =cut
 
 # Trace messages are not translated.
-sub _trace($) { push @{$_[0]->_data->{trace}}, [ time, $_[1] ] }
-
-sub showTrace($%)
-{	my ($self, $account, %args) = @_;
-	my @trace = @{$self->_data->{trace}};
-	@trace or return [];
-
-	my @lines;
-	my $first = shift @trace;
-	my $start = DateTime->from_epoch(epoch => $first->[0]);
-	$start->set_time_zone($account->timezone) if $account;
-
-	push @lines, [ $start->stringify, $first->[1] ];
-	push @lines, [ (sprintf "+%ds", $_->[0] - $first->[0]), $_->[1] ]
-		for @trace;
-
-	\@lines;
-}
+sub _trace($) { $_[0]->pushData(trace => [ time, $_[1] ]) }
 
 1;

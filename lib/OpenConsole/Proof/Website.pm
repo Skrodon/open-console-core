@@ -51,4 +51,5 @@ sub urlUnicode
 	$self->{OPW_uni} //= decode 'utf-8', idn_to_unicode($self->url, 'utf-8');
 }
 
+
 1;
