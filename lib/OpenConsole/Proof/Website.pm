@@ -6,7 +6,7 @@ use Mojo::Base 'OpenConsole::Proof';
 
 use Log::Report 'open-console-core';
 
-use OpenConsole::Util qw(new_token);
+use OpenConsole::Util ();
 use Net::LibIDN  qw(idn_to_unicode);
 use Encode       qw(decode);
 
@@ -21,7 +21,7 @@ use constant {
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
-	$insert->{schema}  ||= WEB1_SCHEMA;
+	$insert->{schema}    ||= WEB1_SCHEMA;
 
 	my $self = $class->SUPER::create($insert, %args);
 	$self;
@@ -39,21 +39,25 @@ sub create($%)
 sub schema() { WEB1_SCHEMA }
 sub set()    { 'websites' }
 sub element(){ 'website'  }
-sub sort()   { lc $_[0]->_data->{url} }
+sub sort()   { lc $_[0]->_data->{website} }
 
-sub url()          { $_[0]->_data->{url} }
-sub challenge()    { $_[0]->_data->{challenge} ||= new_token 'C' }
+sub website()        { $_[0]->_data->{website} }
+sub challenge()      { $_[0]->_data->{challenge} }
 
-sub verifyURL()    { $_[0]->_data->{verifyURL} || {}}
-sub hostPunicode() { $_[0]->verifyURL->{host_puny} }
-sub normalizedURL() { $_[0]->verifyURL->{url_normalized} }
-sub printableURL()  { $_[0]->verifyURL->{url_printable} }
+sub verifyURL()      { $_[0]->_data->{verifyURL} || {}}
+sub verifyURLTrace() { $_[0]->_data->{verifyURLTrace} || []}
+
+sub hostPunicode()   { $_[0]->verifyURL->{host_puny} }
+sub normalizedURL()  { $_[0]->verifyURL->{url_normalized} }
+sub printableURL()   { $_[0]->verifyURL->{url_printable} }
+
+sub proofTrace()     { $_[0]->_data->{proofTrace} || [] }
 
 sub urlUnicode
 {	my $self = shift;
 
 	# Net::LibDN "Limitations" explains it returns bytes not a string
-	$self->{OPW_uni} //= decode 'utf-8', idn_to_unicode($self->url, 'utf-8');
+	$self->{OPW_uni} //= decode 'utf-8', idn_to_unicode($self->website, 'utf-8');
 }
 
 1;

@@ -4,7 +4,7 @@
 package OpenConsole::Session;
 use Mojo::Base 'OpenConsole::Mango::Object';
 
-use Log::Report  'open-console-core', import => [ ];  # 'trace' name conflict
+use Log::Report  'open-console-core', import => [ qw/panic/ ];  # 'trace' name conflict
 
 use Scalar::Util qw(blessed);
 use Time::HiRes  qw(time);
@@ -46,7 +46,7 @@ sub create(;$%)
 
 =cut
 
-has lang  => sub { ... };
+has lang       => sub { panic(join '#', caller) };
 has controller => sub { panic(join '#', caller) };
 
 sub results() { $_[0]->_data->{results} }

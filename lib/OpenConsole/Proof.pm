@@ -38,7 +38,7 @@ sub fromDB($)
 {	my ($class, $data) = @_;
 	my $self = $class->SUPER::fromDB($data);
 
-	$self->setStatus('expired')
+	$self->setData(status => 'expired')
 		if $self->status ne 'expired' && $self->hasExpired;
 
 	$self;
@@ -58,22 +58,11 @@ sub isNew()      { $_[0]->proofId eq 'new' }
 # Keep these attributes in sync with the OwnerConsole/Controller/Proof.pm
 # method submit_group()
 
-sub algorithm()  { $_[0]->_data->{algorithm} }
 sub ownerClass() { $_[0]->_data->{ownerclass} }
 sub ownerId()    { $_[0]->_data->{ownerid} }
 sub proofId()    { $_[0]->_data->{proofid} }
-sub prover()     { $_[0]->_data->{prover} }
 sub schema()     { $_[0]->_data->{schema} }
-sub score()      { $_[0]->_data->{score} }
 sub status()     { $_[0]->_data->{status} }
-
-sub expires()
-{	my $self = shift;
-	return $self->{OP_exp} if exists $self->{OP_exp};
-
-	my $exp = $self->_data->{expires};
-	$self->{OP_exp} = $exp ? (bson2datetime $exp, $self->timezone) : undef;
-}
 
 sub hasExpired()
 {	my $self = shift;
@@ -83,6 +72,21 @@ sub hasExpired()
 }
 
 sub elemLink()   { '/dashboard/' . $_[0]->element . '/' . $_[0]->proofId }
+
+#### after a proof is delivered
+
+sub expires()
+{	my $self = shift;
+	return $self->{OP_exp} if exists $self->{OP_exp};
+
+	my $exp = $self->_data->{expires};
+	$self->{OP_exp} = $exp ? (bson2datetime $exp, $self->timezone) : undef;
+}
+
+sub study()       { $_[0]->_data->{study} || {} }
+sub algorithm()   { $_[0]->study->{algorithm} || 'none' }
+sub algoVersion() { $_[0]->study->{version}   || 'error' }
+sub verified()    { $_[0]->study->{verified}  || 'error' }
 
 #-------------
 =section Ownership
@@ -131,21 +135,16 @@ sub changeOwner($$)
 	delete $self->{OP_owner};
 }
 
-sub setStatus($)
-{	my ($self, $new) = @_;
-	$self->setData(status => $new);
-	$self;
-}
-
 #-------------
 =section Validation
 
 Validation administration.
 =cut
 
-sub invalidate() { $_[0]->setStatus('unproven') }
+sub invalidate() { $_[0]->setData(status => 'unproven') }
+sub accepted()   { $_[0]->setData(expires => undef, status => 'proven') }
 
-sub isInvalid()  { $_[0]->status ne 'proven' }
+sub isValid()    { $_[0]->status eq 'proven' }   # expiration is checked at db-load
 
 #-------------
 =section Action
@@ -165,10 +164,8 @@ sub save(%)
 
 sub delete() { $::app->proofs->deleteProof($_[0]) }
 
-sub accepted()
-{	my $self = shift;
-	$self->setData(expires => undef);
-	$self->setStatus('proven');
+sub score()
+{	42
 }
 
 1;

@@ -161,21 +161,4 @@ warn "MERGING", Dumper $to, $from;
 	$self;
 }
 
-sub showTrace($%)
-{	my ($self, $trace, %args) = @_;
-	$trace && @$trace or return [];
-
-	my @lines;
-	my ($first, @trace) = @$trace;
-	my $start = DateTime->from_epoch(epoch => $first->[0]);
-	my $tz    = $self->account->timezone;
-	$start->set_time_zone($tz) if $tz;
-
-	push @lines, [ $start->stringify =~ s/T/\n/r, $first->[1] ];
-	push @lines, [ (sprintf "+%0.3fs", $_->[0] - $first->[0]), $_->[1] ]
-		for @trace;
-
-	\@lines;
-}
-
 1;
