@@ -74,6 +74,20 @@ sub nrIdentities { scalar $_[0]->identityIds }
 sub nrGroups     { scalar $_[0]->groupIds }
 sub link()       { '/dashboard/account/' . $_[0]->userId }
 
+=method localTime $timestamp
+Convert a timestamp C<"YYYY-mm-DDTHH::MM::SSZ"> (as produced by M<OpenConsole::Util::timestamp()>)
+into a printable time, in the timezone of the account.
+=cut
+
+sub localTime($)
+{	my ($self, $stamp) = @_;
+	$stamp =~ /^([0-9]{4}\-([01][0-9])\-([0-3][0-9])T([0-2][0-9])\:([0-5][0-9])\:([0-5][0-9])Z$/ or panic $stamp;
+	my $dt = DataTime->new(year => $1, month => $2, day => $3,
+		hour => $4, minute => $5, second => $6,
+		time_zone => $self->timezone);
+	$dt->...
+}
+
 #------------------
 =section Password handling
 =cut

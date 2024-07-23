@@ -15,19 +15,11 @@ The software for Open Console is spread of multiple repositories:
 # Open Console, Website Owner Interface
  
 This project is part of https://open-console.eu Open Console, which is
-(mainly) an initiative let website-owners communicate with service
+(mainly) an initiative let website-owners communicate with services
 which do something with their website, domain-name, or network.
 
-For instance, the EU initiative https://OpenWebSearch.EU OpenWebSearch.EU
-(which crawls websites for research and Google alternatives) uses this
-interface to implement the (EU) legal requirements for correction rights
-(take-downs).  Besides, it shows which parts of your site it collected,
-and what information it extracted.
-
 Open Console is a larger project: this sub-project only focusses on the
-owner-to-service communication.  Other sub-projects focus on the exchange
-of website information between parties who have information about websites,
-and parties who need to know.  For instance, lists of phishing sites.
+structures which are shared by various components.
 
 ## Installing Perl modules
 

@@ -53,11 +53,4 @@ sub printableURL()   { $_[0]->verifyURL->{url_printable} }
 
 sub proofTrace()     { $_[0]->_data->{proofTrace} || [] }
 
-sub urlUnicode
-{	my $self = shift;
-
-	# Net::LibDN "Limitations" explains it returns bytes not a string
-	$self->{OPW_uni} //= decode 'utf-8', idn_to_unicode($self->website, 'utf-8');
-}
-
 1;
