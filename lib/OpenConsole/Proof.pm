@@ -11,6 +11,9 @@ use DateTime      ();
 
 use OpenConsole::Util  qw(bson2datetime new_token);
 
+=chapter NAME
+OpenConsole::Proof - base class for any kind of collected proof
+
 =chapter DESCRIPTION
 Base class for all kinds of proofs of ownership.
 
@@ -49,11 +52,7 @@ sub fromDB($)
 =cut
 
 # Must be extended
-sub set()     { ... }
-sub element() { ... }
-sub sort()    { ... }
-
-sub isNew()      { $_[0]->proofId eq 'new' }
+sub id() { $_[0]->proofId }
 
 # Keep these attributes in sync with the OwnerConsole/Controller/Proof.pm
 # method submit_group()
@@ -70,8 +69,6 @@ sub hasExpired()
 	my $exp  = $self->expires;
 	$self->{OP_dead} = defined $exp ? $exp < DateTime->now : 0;
 }
-
-sub elemLink()   { '/dashboard/' . $_[0]->element . '/' . $_[0]->proofId }
 
 #### after a proof is delivered
 
@@ -143,11 +140,20 @@ Validation administration.
 
 sub invalidate() { $_[0]->setData(status => 'unproven') }
 sub accepted()   { $_[0]->setData(expires => undef, status => 'proven') }
-
 sub isValid()    { $_[0]->status eq 'proven' }   # expiration is checked at db-load
 
 #-------------
 =section Action
+
+=method save %options
+Save this proof to the database.  When it does not have an ID yet, then
+it will get assigned on.
+
+=option  by_user BOOLEAN
+=default by_user <false>
+When a user saves this form, it is accepting the data changes which require
+human intervention.  Automated procedures may also update the schema, when
+they are sure that no user action is required.
 =cut
 
 sub save(%)
@@ -162,10 +168,20 @@ sub save(%)
     $::app->proofs->saveProof($self);
 }
 
+=method delete
+Flag this proof for deletion.
+=cut
+
 sub delete() { $::app->proofs->deleteProof($_[0]) }
 
-sub score()
-{	42
-}
+=method score %options
+Rate the quality of the proof.  The higher the value, the better the
+proof.  A value of '0' means "no proof".
+
+The actual score can depend on many factors, which may even be controlled
+by the Service.  Therefore, the C<score> needs to be recomputed often.
+=cut
+
+sub score() { panic "must be extended" }
 
 1;

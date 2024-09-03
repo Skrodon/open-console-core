@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2024 Mark Overmeer <mark@open-console.eu>
 # SPDX-License-Identifier: EUPL-1.2-or-later
 
-package OpenConsole::Proof::Contract;
-use Mojo::Base 'OpenConsole::Proof';
+package OpenConsole::Contract;
+use Mojo::Base 'OpenConsole::Mango::Object';
 
 use Log::Report 'open-console-core';
 
@@ -12,8 +12,10 @@ use constant {
 	CONTRACT_SCHEMA => '20240224',
 };
 
-=section DESCRIPTION
+=chapter NAME
+OpenConsole::Contract - a contract between an account and a service
 
+=chapter DESCRIPTION
 =section Constructors
 =cut
 

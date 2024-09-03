@@ -96,7 +96,9 @@ sub is_valid_url($)
 }
 
 # The timestamps I generate myself
-sub is_valid_zulu($)  { $_[0] =~ m!^[0-9]{4}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z$! }
+sub is_valid_zulu($)
+{	$_[0] =~ m!^[0-9]{4}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z$!;
+}
 
 #----------
 =section MongoDB

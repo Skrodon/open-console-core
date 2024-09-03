@@ -12,7 +12,10 @@ use OpenConsole::Account  ();
 use OpenConsole::Identity ();
 use OpenConsole::Group    ();
 
-=section DESCRIPTION
+=chapter NAME
+OpenConsole::Model::Users - database with important user data
+
+=chapter DESCRIPTION
 This object handles the "users" database, which contains all information
 which related to perticular people with a login.
 
@@ -23,6 +26,7 @@ collections:
 =item * 'groups': indentity groups
 =back
 
+=chapter METHODS
 =cut
 
 has db => undef;

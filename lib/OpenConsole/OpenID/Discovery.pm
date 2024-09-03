@@ -8,11 +8,9 @@ use Log::Report 'open-console-core';
 
 =chapter NAME
 
-OpenConsole::OpenID::Discovery = manage discovery reply
+OpenConsole::OpenID::Discovery - manage discovery reply
 
 =chapter SYNOPSIS
-
-  
 
 =chapter DESCRIPTION
 

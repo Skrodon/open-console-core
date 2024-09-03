@@ -6,7 +6,11 @@ use Mojo::Base -base;
 
 use Log::Report 'open-console-core';
 
-#------------------------
+=chapter NAME
+OpenConsole::Mango::Object - base for any database storable object
+
+=chapter METHODS
+
 =section Constructors
 =cut
 
@@ -25,9 +29,38 @@ sub create($%)
 
 #------------------------
 =section Attributes
+
+=method id
+The unique identifier for this object.  It is even unique within the whole
+program and database.
+
+=method created
+The moment of creation of the object.
+
+=method set
+The name of the C<set> where this object belongs to.  Usually then name of
+the M<element()> followed by a C<s>.
+
+=method element
+The type of element this object presents.
 =cut
 
+sub id()      { $_[0]->_data->{id} }
 sub created() { my $c = $_[0]->_data->{created}; $c ? $c->to_datetime : undef }
+sub set()     { ... }
+sub element() { ... }
+
+=method sort
+The key to be used when sorting this kind of objects.
+
+=method isNew
+Whether the object was already saved.
+=cut
+
+sub sort()     { $_[0]->id }
+sub isNew()    { $_[0]->id eq 'new' }
+sub elemLink() { '/dashboard/' . $_[0]->element . '/' . $_[0]->id }
+
 
 #------------------------
 =section Data

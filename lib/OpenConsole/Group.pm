@@ -16,7 +16,12 @@ use constant
 {	GROUP_SCHEMA => '20240112',
 };
 
-=section DESCRIPTION
+=chapter NAME
+OpenConsole::Group - Manage a group of users
+
+=chapter DESCRIPTION
+
+=chapter METHODS
 
 =section Constructors
 =cut

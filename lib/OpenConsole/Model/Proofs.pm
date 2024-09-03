@@ -10,6 +10,9 @@ use Mango::BSON ':bson';
 
 use OpenConsole::Proofs         ();
 
+=chapter NAME
+OpenConsole::Model::Proofs - database for collected proofs
+
 =chapter DESCRIPTION
 
 collections:

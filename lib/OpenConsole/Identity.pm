@@ -10,7 +10,10 @@ use OpenConsole::Util  qw(new_token);
 
 use constant IDENTITY_SCHEMA => '20240111';
 
-=section DESCRIPTION
+=chapter NAME
+OpenConsole::Identity - a person's identity
+
+=chapter DESCRIPTION
 
 An Identity represents one of the ways a person wants to present
 him/herself.  See it as: one of the roles a person plays in
@@ -25,6 +28,7 @@ https://openid.net/specs/openid-connect-basic-1_0-23.html
 section 2.4.2.  At least, one method MUST be implemented which produces
 these facts.  Work in progress.
 
+=chapter METHODS
 =section Constructors
 =cut
 

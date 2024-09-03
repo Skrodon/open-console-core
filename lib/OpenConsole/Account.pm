@@ -7,15 +7,21 @@ use Mojo::Base 'OpenConsole::Mango::Object';
 use Log::Report 'open-console-core';
 
 use Mango::BSON::Time ();
+use DateTime          ();
+use DateTime::Format::Mail ();
 use Crypt::PBKDF2     ();
-my $crypt = Crypt::PBKDF2->new;
 
 use OpenConsole::Util     qw(new_token);
 use OpenConsole::Identity ();
 use OpenConsole::Proofs   ();
 
+my $crypt = Crypt::PBKDF2->new;
 use constant ACCOUNT_SCHEMA => '20240102';
 
+=chapter NAME
+OpenConsole::Account - a user's login
+
+=chapter METHODS
 =section Constructors
 =cut
 
@@ -81,11 +87,11 @@ into a printable time, in the timezone of the account.
 
 sub localTime($)
 {	my ($self, $stamp) = @_;
-	$stamp =~ /^([0-9]{4}\-([01][0-9])\-([0-3][0-9])T([0-2][0-9])\:([0-5][0-9])\:([0-5][0-9])Z$/ or panic $stamp;
-	my $dt = DataTime->new(year => $1, month => $2, day => $3,
+	$stamp =~ /^([0-9]{4})\-([01][0-9])\-([0-3][0-9])T([0-2][0-9])\:([0-5][0-9])\:([0-5][0-9])Z$/ or panic $stamp;
+	my $dt = DateTime->new(year => $1, month => $2, day => $3,
 		hour => $4, minute => $5, second => $6,
 		time_zone => $self->timezone);
-	$dt->...
+	DateTime::Format::Mail->format_datetime($dt);
 }
 
 #------------------
@@ -186,7 +192,7 @@ sub preferredIdentity()
 {	my $self = shift;
 
 	#XXX No way to configure this yet
-	($self->identities)[0];
+	($self->identities)[0] // undef;
 }
 
 #------------------

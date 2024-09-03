@@ -10,8 +10,11 @@ use constant {
 	ADDR1_SCHEMA => '20240210',
 };
 
-=section DESCRIPTION
+=chapter NAME
+OpenConsole::Proof::EmailAddr - collectable proof of website ownership
 
+=chapter DESCRIPTION
+=chapter METHODS
 =section Constructors
 =cut
 
@@ -40,5 +43,11 @@ sub sort()    { lc $_[0]->_data->{email} }
 
 sub email()   { $_[0]->_data->{email} }
 sub supportsSubAddressing() { $_[0]->_data->{sub_addressing} }
+
+#-------------
+=section Other
+=cut
+
+sub score()   { 50 }
 
 1;

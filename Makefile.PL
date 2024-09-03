@@ -13,6 +13,7 @@ WriteMakefile
 	'Crypt::PBKDF2'		=> 0,
 	'Data::Dumper'		=> 0,
 	'DateTime'			=> 1.50,
+	'DateTime::Format::Mail'   => 0,
 	'Devel::GlobalDestruction' => 0,
 	'Email::Valid'		=> 0,
 	'Encode'			=> 0,
@@ -53,8 +54,8 @@ WriteMakefile
 sub MY::postamble { <<'__POSTAMBLE' }
 
 # for DIST
-RAWDIR          = /tmp/OpenConsole/raw
-DISTDIR         = /tmp/OpenConsole/source
+RAWDIR          = /tmp/OpenConsole-raw
+DISTDIR         = /tmp/OpenConsole-source
 
 # for POD
 FIRST_YEAR      = 2024

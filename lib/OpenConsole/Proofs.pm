@@ -13,13 +13,14 @@ use Scalar::Util    qw(blessed);
 
 use OpenConsole::Proof::EmailAddr ();
 use OpenConsole::Proof::Website   ();
-use OpenConsole::Proof::Contract  ();
 
 my %proofclass = (
 	emailaddrs => 'OpenConsole::Proof::EmailAddr',
 	websites   => 'OpenConsole::Proof::Website',
-	contracts  => 'OpenConsole::Proof::Contract',
 );
+
+=chapter NAME
+OpenConsole::Proofs - base-class for any kind of proof
 
 =chapter DESCRIPTION
 

@@ -6,7 +6,8 @@ use Mojo::Base 'OpenConsole::Proof';
 
 use Log::Report 'open-console-core';
 
-use OpenConsole::Util ();
+use OpenConsole::Util;
+
 use Net::LibIDN  qw(idn_to_unicode);
 use Encode       qw(decode);
 
@@ -14,8 +15,12 @@ use constant {
 	WEB1_SCHEMA => '20240218',
 };
 
-=section DESCRIPTION
+=chapter NAME
+OpenConsole::Proof::Website - collects proofs of website ownership
 
+=chapter DESCRIPTION
+
+=chapter METHODS
 =section Constructors
 =cut
 
@@ -52,5 +57,36 @@ sub normalizedURL()  { $_[0]->verifyURL->{url_normalized} }
 sub printableURL()   { $_[0]->verifyURL->{url_printable} }
 
 sub proofTrace()     { $_[0]->_data->{proofTrace} || [] }
+
+#-------------
+=section Other
+=cut
+
+# See https://github.com/Skrodon/open-console-owner/wiki/Proof-Website-Ownership/
+# and lib/TasksConsole/Prover/Website.pm
+
+sub score(%)
+{	my ($self, %args) = @_;
+	$self->status eq 'proven' or return 0;
+
+	my $score = 0;
+
+	# Score the quality of the website URL
+	my $dnscheck = $self->verifyURL->{dns_check}; 
+	$score += 20 if $dnscheck->{all_dnssec};
+
+	my $study = $self->study;
+	$score += 40 if $study->{challenge};
+
+	my $algo  = $study->{algorithm};
+	if($algo eq 'dns')
+	{	$score += 10 if $study->{txt_dnssec};
+	}
+	else
+	{	$score += 10 if $study->{use_https};
+	}
+
+	$score;
+}
 
 1;
