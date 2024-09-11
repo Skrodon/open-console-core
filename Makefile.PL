@@ -54,13 +54,13 @@ WriteMakefile
 sub MY::postamble { <<'__POSTAMBLE' }
 
 # for DIST
-RAWDIR          = /tmp/OpenConsole-raw
-DISTDIR         = /tmp/OpenConsole-source
+RAWDIR          =
+DISTDIR         = /home/markov/shared/perl/public_html/open-console-core/source
 
 # for POD
 FIRST_YEAR      = 2024
 EMAIL           = mark@open-console.eu
-EXTENDS         = 
+EXTENDS         = ../open-console-owner:../open-console-tasks:../open-console-connect
 WEBSITE         = http://perl.overmeer.net/open-console
 
 __POSTAMBLE

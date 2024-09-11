@@ -14,6 +14,7 @@ use Session::Token ();
 use Time::HiRes    ();
 use DateTime       ();
 use JSON::PP       ();
+use File::Slurper  qw/read_lines/;
 
 my @is_valid = qw(
 	is_valid_date
@@ -43,6 +44,7 @@ our @EXPORT_OK = (@is_valid, @validators, @bool, qw(
 	reseed_tokens
 	get_page
 	user_agent
+	domain_suffix
 ));
 
 our %EXPORT_TAGS = (
@@ -194,5 +196,48 @@ database language.
 sub true()  { JSON::PP::true }
 sub false() { JSON::PP::false }
 sub bool($) { $_[0] ? JSON::PP::true : JSON::PP::false }
+
+#-----------
+=section Domain-names
+
+=method domain_suffix $name
+Split a given (host)name into an (optional) host part, an
+(optional) registered domain-name, and the public suffix.
+
+=example Split a domain
+  my ($host, $domain, $suffix) = domain_suffix "www.nos.nl";
+  #  -> ('www', 'nos', 'nl')
+  # bbc.co.uk -> (undef, 'bbc', 'co.uk')
+=cut
+
+use constant SOURCE => '/usr/share/publicsuffix/public_suffix_list.dat';
+my (%excluded, %wildcard, %suffix);
+
+BEGIN {
+	foreach my $line (read_lines SOURCE)
+	{	   if($line =~ s/^!//)    { undef $excluded{$line} }
+		elsif($line =~ s/^\*\.//) { undef $wildcard{$line} }
+		else                      { undef $suffix{$line}   }
+	}
+}
+
+sub domain_suffix($);
+sub domain_suffix($)
+{	my $name = shift;
+	return (undef, undef, $name)
+		if exists $suffix{$name};
+
+	my ($first, $rest) = split /\./, $name, 2;
+	return (undef, undef, $name)
+		if ! defined $rest
+		|| (exists $wildcard{$rest} && ! exists $excluded{$name});
+
+	my ($host, $domain, $suffix) = domain_suffix $rest;
+	if(! defined $domain) { $domain = $first }
+	elsif(defined $host)  { $host   = "$first.$host" }
+	else                  { $host   = $first }
+
+	($host, $domain, $suffix);
+}
 
 1;

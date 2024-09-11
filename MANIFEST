@@ -20,3 +20,4 @@ lib/OpenConsole/Session.pm
 lib/OpenConsole/Session/Ajax.pm
 lib/OpenConsole/Session/Task.pm
 lib/OpenConsole/Util.pm
+t/10domain_suffix.t

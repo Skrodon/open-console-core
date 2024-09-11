@@ -60,6 +60,7 @@ sub trace()   { $_[0]->_data->{trace} || [] }
 sub addError($$)
 {	my ($self, $field, $error) = @_;
 	$self->pushData(errors => [ $field => blessed $error ? $error->toString($self->lang) : $error ]);
+	$self->_trace('error: ' . $error->toString);
 }
 
 sub hasErrors() { scalar @{$_[0]->_data->{errors}} }
@@ -67,18 +68,20 @@ sub hasErrors() { scalar @{$_[0]->_data->{errors}} }
 sub addWarning($$)
 {	my ($self, $field, $warn) = @_;
 	$self->pushData(warnings => [ $field => blessed $warn ? $warn->toString($self->lang) : $warn ]);
+	$self->_trace('warning: ' . $warn->toString);
 }
 
 sub notify($$)
 {	my ($self, $level, $msg) = @_;
 	# Hopefully, later we can have nicer notifications than a simple alert.
-	my $text = blessed $msg ? $msg->toString($self->lang) : $msg;
-	$self->pushData(notifications => "$level: $text");
+	$self->pushData(notifications => '$level: '. (blessed $msg ? $msg->toString($self->lang) : $msg));
+	$self->_trace("notify $level:" . (blessed $msg ? $msg->toString : $msg));
 }
 
 sub internalError($)
 {	my ($self, $error) = @_;
 	$self->pushData(internal_errors => blessed $error ? $error->toString($self->lang) : $error);
+	$self->_trace('crash: ' . (blessed $error ? $error->toString : $error));
 }
 
 sub hasInternalErrors() { scalar @{$_[0]->_data->{internal_errors}} }
