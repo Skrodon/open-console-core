@@ -74,7 +74,7 @@ sub addWarning($$)
 sub notify($$)
 {	my ($self, $level, $msg) = @_;
 	# Hopefully, later we can have nicer notifications than a simple alert.
-	$self->pushData(notifications => '$level: '. (blessed $msg ? $msg->toString($self->lang) : $msg));
+	$self->pushData(notifications => $level . ': '. (blessed $msg ? $msg->toString($self->lang) : $msg));
 	$self->_trace("notify $level:" . (blessed $msg ? $msg->toString : $msg));
 }
 
