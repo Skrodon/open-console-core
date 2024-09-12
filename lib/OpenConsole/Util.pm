@@ -201,21 +201,28 @@ sub bool($) { $_[0] ? JSON::PP::true : JSON::PP::false }
 =section Domain-names
 
 =method domain_suffix $name
-Split a given (host)name into an (optional) host part, an
+Split a given (host~) $name into an (optional) host part, an
 (optional) registered domain-name, and the public suffix.
+The name MUST be in utf8 form.
+
+The host may contain dots, also the suffix.
+The public suffix list is distributed with Linux, and maintained
+by Mozilla.
 
 =example Split a domain
   my ($host, $domain, $suffix) = domain_suffix "www.nos.nl";
-  #  -> ('www', 'nos', 'nl')
+  #    -> ('www', 'nos', 'nl')
   # bbc.co.uk -> (undef, 'bbc', 'co.uk')
 =cut
 
 use constant SOURCE => '/usr/share/publicsuffix/public_suffix_list.dat';
 my (%excluded, %wildcard, %suffix);
 
-BEGIN {
-	foreach my $line (read_lines SOURCE)
-	{	   if($line =~ s/^!//)    { undef $excluded{$line} }
+BEGIN
+{	foreach my $line (read_lines SOURCE)
+	{	next if $line =~ m,^\s*$|^\/\/,;   # blank line or comment
+
+		   if($line =~ s/^!//)    { undef $excluded{$line} }
 		elsif($line =~ s/^\*\.//) { undef $wildcard{$line} }
 		else                      { undef $suffix{$line}   }
 	}
@@ -233,9 +240,10 @@ sub domain_suffix($)
 		|| (exists $wildcard{$rest} && ! exists $excluded{$name});
 
 	my ($host, $domain, $suffix) = domain_suffix $rest;
-	if(! defined $domain) { $domain = $first }
-	elsif(defined $host)  { $host   = "$first.$host" }
-	else                  { $host   = $first }
+
+	   if(!defined $domain) { $domain = $first }
+	elsif( defined $host)   { $host   = "$first.$host" }
+	else                    { $host   = $first }
 
 	($host, $domain, $suffix);
 }
