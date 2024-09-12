@@ -53,6 +53,7 @@ sub verifyURL()      { $_[0]->_data->{verifyURL} || {}}
 sub verifyURLTrace() { $_[0]->_data->{verifyURLTrace} || []}
 
 sub hostPunicode()   { $_[0]->verifyURL->{host_puny} }
+sub hostUTF8()       { $_[0]->verifyURL->{host_utf8} }
 sub normalizedURL()  { $_[0]->verifyURL->{url_normalized} }
 sub printableURL()   { $_[0]->verifyURL->{url_printable} }
 
