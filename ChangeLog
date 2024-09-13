@@ -6,6 +6,7 @@ version 0.02:
 	Improvements:
 	- add ::Util::domain_suffix()
 	- add ::Proof::Website::hostUTF8()
+	- ::Util token work
 
 version 0.01: Wed Sep 09 09:21:50 PM CEST 2024
 	- Initial

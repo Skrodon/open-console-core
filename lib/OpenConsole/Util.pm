@@ -36,20 +36,25 @@ my @bool = qw(
 	bool
 );
 
-our @EXPORT_OK = (@is_valid, @validators, @bool, qw(
+my @tokens = qw(
+	new_token
+	reseed_tokens
+	in_token_class
+);
+
+our @EXPORT_OK = (@is_valid, @validators, @bool, @tokens, qw(
 	flat
 	bson2datetime
 	timestamp
-	new_token
-	reseed_tokens
 	get_page
 	user_agent
 	domain_suffix
 ));
 
 our %EXPORT_TAGS = (
-   validate => [ @is_valid, @validators ],
-   bool => \@bool,
+	validate => [ @is_valid, @validators ],
+	bool     => \@bool,
+	tokens   => \@tokens,
 );
 
 =chapter NAME
@@ -134,22 +139,27 @@ which indicate its application.  The latter mainly for debugging purposes.
 Token prefixes:
 
    A = Account
-   C = Challenge
+   C = Contract
    G = Group identity
+   H = cHallenge
    I = personal Identity
    M = send eMail
    N = iNvite email
    P = proof
+   S = Service
+   T = Temporary application session id
 
 =function new_token $prefix
 =function reseed_tokens
+=function is_valid_token $token
+=function in_token_class $char
 =cut
 
 my $token_generator = Session::Token->new;
 sub new_token($)      { state $i = $::app->config->{instance}; "$i:${_[0]}:" . $token_generator->get }
 sub reseed_tokens()   { $token_generator = Session::Token->new }
-
 sub is_valid_token($) { $_[0] =~ m!^[a-z0-9]{5,8}\:[A-Z]\:[a-zA-Z0-9]{10,50}$! }
+sub in_token_class($) { $_[0] =~ m!\:(.)\:! && $1 eq $_[1] }
 
 #-----------
 =section Browser client
