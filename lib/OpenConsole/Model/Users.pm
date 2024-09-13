@@ -45,7 +45,6 @@ sub upgrade
 	# We can run "ensure_index()" as often as we want.
 
 #$self->accounts->drop_index('email');
-	$self->accounts->ensure_index({ userid => 1 }, { unique => bson_true });
 
 	$self->accounts->ensure_index({ email  => 1 }, {
 		unique    => bson_true,
@@ -53,10 +52,8 @@ sub upgrade
 	});
 
 #$self->identities->drop_index('userid');
-	$self->identities->ensure_index({ identid => 1 }, { unique => bson_true });
 	$self->identities->ensure_index({ userid  => 1 }, { unique => bson_false });
 
-	$self->groups->ensure_index({ groupid => 1 }, { unique => bson_true });
 	$self->groups->ensure_index({ userid  => 1 }, { unique => bson_false });
 	$self->groups->ensure_index({ identid => 1 }, { unique => bson_false });
 	$self;
@@ -71,7 +68,7 @@ sub account($)
 	defined $userid or return;
 
 #warn "LOADING ACCOUNT $userid";
-	my $data = $self->accounts->find_one({userid => $userid})
+	my $data = $self->accounts->find_one({id => $userid})
 		or return;
  
 	OpenConsole::Account->fromDB($data);
@@ -87,7 +84,7 @@ sub accountByEmail($)
  
 sub removeAccount($)
 {	my ($self, $userid) = @_;
-	$self->accounts->remove({userid => $userid})
+	$self->accounts->remove({id => $userid})
 		or return;
 }
  
@@ -107,7 +104,7 @@ sub allAccounts()
 
 sub identity($)
 {	my ($self, $identid) = @_;
-	my $data = $self->identities->find_one({identid => $identid})
+	my $data = $self->identities->find_one({id => $identid})
 		or return;
 
 	OpenConsole::Identity->fromDB($data);
@@ -115,7 +112,7 @@ sub identity($)
 
 sub removeIdentity($)
 {	my ($self, $identity) = @_;
-	$self->identities->remove({identid => $identity->identityId});
+	$self->identities->remove({identid => $identity->id});
 }
 
 sub saveIdentity($)
@@ -135,7 +132,7 @@ sub allIdentities()
 
 sub group($)
 {	my ($self, $groupid) = @_;
-	my $data = $self->groups->find_one({groupid => $groupid})
+	my $data = $self->groups->find_one({id => $groupid})
 		or return;
 
 	OpenConsole::Group->fromDB($data);
@@ -143,7 +140,7 @@ sub group($)
 
 sub removeGroup($)
 {	my ($self, $group) = @_;
-	$self->groups->remove({groupid => $group->groupId});
+	$self->groups->remove({groupid => $group->id});
 }
 
 sub saveGroup($)
@@ -158,7 +155,7 @@ sub allGroups()
 
 sub groupsUsingIdentity($)
 {	my ($self, $identity) = @_;
-	my $groups = $self->groups->find({identid => $identity->identityId})->all;
+	my $groups = $self->groups->find({identid => $identity->id})->all;
 	map OpenConsole::Group->fromDB($_), @$groups;
 }
 

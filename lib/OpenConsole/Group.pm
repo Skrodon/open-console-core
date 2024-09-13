@@ -150,7 +150,7 @@ sub allMembers(%)
 
 sub hasMemberFrom($)
 {	my ($self, $account) = @_;
-	my %ids  = map +($_->identityId => 1), $account->identities;
+	my %ids  = map +($_->id => 1), $account->identities;
 use Data::Dumper;
 warn "MISSING IDENTID ", Dumper [ $self->members ] if grep ! $_->{identid}, $self->members;
     my $data = first { $ids{$_->{identid}} } $self->members;
@@ -160,15 +160,15 @@ warn "MISSING IDENTID ", Dumper [ $self->members ] if grep ! $_->{identid}, $sel
 sub memberIdentityOf($)
 {	my ($self, $account) = @_;
 	my %memids = map +($_->{identid} => $_), $self->members;
-	first { exists $memids{$_->identityId}} $account->identities;
+	first { exists $memids{$_->id}} $account->identities;
 }
 
 sub changeIdentity($$)
 {	my ($self, $account, $identity) = @_;
-	my $identid = blessed $identity ? $identity->identityId : $identity;
+	my $identid = blessed $identity ? $identity->id : $identity;
 	my %memids  = map +($_->{identid} => $_), $self->members;
 	foreach my $identity ($account->identities)
-	{	my $had = $memids{$identity->identityId} or next;
+	{	my $had = $memids{$identity->id} or next;
 		$had->{identid} = $identid;
 	}
 	1;
@@ -207,9 +207,10 @@ sub assets() { $_[0]->{OG_assets} ||= OpenConsole::Assets->new(owner => $_[0]) }
 =section Actions
 =cut
 
-sub remove()
-{	my $self = shift;
-	$::app->batch->removeEmailsRelatedTo($self->accountId);
+sub _remove($)
+{	my ($self, $account) = @_;
+	$::app->batch->removeEmailsRelatedTo($self->id);
+    $::app->users->removeGroup($self);
 #XXX Check ownerships which have to be reassigned
 }
 

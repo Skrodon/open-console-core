@@ -26,7 +26,7 @@ OpenConsole::Assets - handling sets of Assets
 
 =chapter DESCRIPTION
 Manage a set of assets for an owner, which could be an Account, an
-(personal) Identity, or a Group (Identity).
+(personal) Identity, or a Group (identity).
 
 =chapter METHODS
 =section Constructors
@@ -42,7 +42,7 @@ has owner => sub { error "Requires owner" }, weak => 1;
 =section Ownership
 =cut
 
-sub ownerId()         { $_[0]->owner->ownerId }
+sub ownerId()         { $_[0]->owner->id }
 sub ownedByPerson()   { $_[0]->owner->isa('OpenConsole::Account')  }
 sub ownedByIdentity() { $_[0]->owner->isa('OpenConsole::Identity') }
 sub ownedByGroup()    { $_[0]->owner->isa('OpenConsole::Group')    }

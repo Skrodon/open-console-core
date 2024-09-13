@@ -61,6 +61,9 @@ The key to be used when sorting this kind of objects.
 
 =method isNew
 Whether the object was already saved.
+
+=method elemLink
+Produce the (site absolute) URL which brings you to the object.
 =cut
 
 sub sort()     { $_[0]->id }

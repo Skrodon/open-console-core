@@ -35,7 +35,7 @@ sub create($%)
 {	my ($class, $account, %args) = @_;
 
 	my %insert =
-	  (	userid   => $account->userId,
+	  (	userid   => $account->id,
 		gender   => $account->gender,
 		language => $account->preferredLanguage,
 	  );
@@ -48,7 +48,6 @@ sub create($%)
 =cut
 
 sub schema()     { '20240111' }
-sub ownerId()    { $_[0]->identityId }
 sub userId()     { $_[0]->_data->{userid} }
 
 # Keep these attributes in sync with the OwnerConsole/Controller/Identities.pm
@@ -78,10 +77,10 @@ sub assets() { $_[0]->{OI_assets} ||= OpenConsole::Assets->new(owner => $_[0]) }
 =section Actions
 =cut
 
-sub remove()
-{	my $self = shift;
+sub _remove($)
+{	my ($self, $acount) = @_;
+	$::app->batch->removeEmailsRelatedTo($self->id);
 	$::app->users->removeIdentity($self);
-	$self->account->removeIdentity($self);
 }
 
 sub usedForGroups() { $::app->users->groupsUsingIdentity($_[0]) }

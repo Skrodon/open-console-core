@@ -7,6 +7,7 @@ use Mojo::Base 'OpenConsole::Asset';
 use Log::Report 'open-console-core';
 
 use Encode       qw(decode);
+use OpenConsole::Util qw(new_token);
 
 =chapter NAME
 OpenConsole::Asset::Service - describes a Service
@@ -15,7 +16,7 @@ OpenConsole::Asset::Service - describes a Service
 The "service" defines what an organization has to offer to other
 people.  The service is described as a rules, which needs to match
 the information which the user of that service is willing to give.
-Together, the "service" and the (personal or group identity)
+Together, the "service" and the (personal or Group identity)
 negotiate a "contract" of usage.
 
 =chapter METHODS

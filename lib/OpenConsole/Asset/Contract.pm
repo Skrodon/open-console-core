@@ -6,7 +6,8 @@ use Mojo::Base 'OpenConsole::Mango::Object';
 
 use Log::Report 'open-console-core';
 
-use Encode       qw(decode);
+use Encode            qw(decode);
+use OpenConsole::Util qw(new_token);
 
 =chapter NAME
 OpenConsole::Asset::Contract - a contract between an account and a service

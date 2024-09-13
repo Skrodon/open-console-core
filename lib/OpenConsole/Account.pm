@@ -55,10 +55,9 @@ sub fromDB($)
 =section Attributes
 =cut
 
-#### Keep these attributes in sync with OwnerConsole::Collector::Account::submit()
-
 sub schema()    { '20240102' }
-sub ownerId()   { $_[0]->id }      # I own myself
+
+#### Keep these attributes in sync with OwnerConsole::Collector::Account::submit()
 
 sub email()     { $_[0]->_data->{email}  }
 sub birth()     { $_[0]->_data->{birth_date} }
@@ -144,7 +143,7 @@ sub addIdentity($)  # by id or object
 	defined $identity or return;
 
 	my $ids = $self->_data->{identities} ||= [];
-	my $id  = ref $identity ? $identity->identityId : $identity;
+	my $id  = ref $identity ? $identity->id : $identity;
 	return $self if grep $id eq $_, @$ids;
 
 	push @$ids, $id;
@@ -156,7 +155,9 @@ sub addIdentity($)  # by id or object
 
 sub removeIdentity($)
 {	my ($self, $identity) = @_;
-	my $id  = $identity->identityId;
+	$identity->_remove($self);
+
+	my $id  = $identity->id;
 	$self->_data->{identities} = [ grep $_ ne $id, $self->identityIds ];
 	delete $self->{OA_ids};
 	$self->log("Removed identity $id");
@@ -183,7 +184,7 @@ sub identities
 			}
 		}
 		$self->{OA_ids} = [ sort {$a->role cmp $b->role} @identities ];
-		$self->_data->{identities} =  [ map $_->identityId, @identities ];
+		$self->_data->{identities} =  [ map $_->id, @identities ];
 	}
 	@{$self->{OA_ids}};
 }
@@ -204,7 +205,7 @@ sub addGroup($)  # by id or object
 	defined $group or return;
 
 	my $groupIds = $self->_data->{groups} ||= [];
-	my $id       = ref $group ? $group->groupId : $group;
+	my $id       = ref $group ? $group->id : $group;
 	return $self if grep $id eq $_, @$groupIds;     # avoid doubles
 
 	push @$groupIds, $id;
@@ -216,7 +217,9 @@ sub addGroup($)  # by id or object
 
 sub removeGroup($)
 {	my ($self, $group) = @_;
-	my $id  = $group->groupId;
+	$group->_remove($self);
+
+	my $id  = $group->id;
 	$self->_data->{groups} = [ grep $_ ne $id, $self->groupIds ];
 	delete $self->{OA_groups};
 	$self->log("Removed group $id");
@@ -289,8 +292,8 @@ sub asset($$)
 
 sub remove()
 {	my $self = shift;
-    $_->remove for $self->groups, $self->identities;
-    $::app->batch->removeEmailsRelatedTo($self->accountId);
+    $_->remove($self) for $self->groups, $self->identities;
+    $::app->batch->removeEmailsRelatedTo($self->id);
 }
 
 sub save(%)

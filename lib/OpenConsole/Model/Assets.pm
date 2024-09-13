@@ -32,10 +32,7 @@ has assets     => sub { $_[0]->{OMB_assets}  ||= $_[0]->db->collection('assets')
 
 sub upgrade
 {	my $self = shift;
-
-	$self->assets->ensure_index({ assetid => 1 }, { unique => bson_true  });
 	$self->assets->ensure_index({ ownerid => 1 }, { unique => bson_false });
-
 	$self;
 }
 
@@ -58,7 +55,7 @@ sub saveAsset($)
 
 sub asset($)
 {	my ($self, $assetid) = @_;
-	my $data = $self->assets->find_one({assetid => $assetid})
+	my $data = $self->assets->find_one({id => $assetid})
 		or return;
 
 	OpenConsole::Assets->assetFromDB($data);
@@ -66,7 +63,7 @@ sub asset($)
 
 sub deleteAsset($)
 {	my ($self, $asset) = @_;
-	$self->assets->remove({ assetid => $asset->assetId });
+	$self->assets->remove({ id => $asset->id });
 }
 
 1;

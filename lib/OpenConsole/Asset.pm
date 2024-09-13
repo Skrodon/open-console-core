@@ -29,7 +29,7 @@ sub create($%)
 	$insert->{proofid}   = 'new';
 
 	my $owner = delete $insert->{owner} or panic;
-	$insert->{ownerid}   = $owner->ownerId;
+	$insert->{ownerid}   = $owner->id;
 	$insert->{ownerclass}= ref $owner;
 
 	my $self = $class->SUPER::create($insert, %args);
@@ -78,7 +78,7 @@ sub owner($)
 
 	my $class = $self->ownerClass;
 	if($class->isOwnedByMe)
-	{	$account->userId eq $self->ownerId
+	{	$account->id eq $self->ownerId
 			or error __x"Account does not own the proof anymore.";
 		return $self->{OP_owner} = $account;
 	}
@@ -99,7 +99,7 @@ sub owner($)
 }
 
 sub isOwnedByMe()     { $_[0]->ownerClass->isa('OpenConsole::Account') }
-sub isOwnedByGroup($) { $_[0]->ownerId eq $_[1]->groupId }
+sub isOwnedByGroup($) { $_[0]->ownerId eq $_[1]->id }
 
 # The identity which is related to this proof.  This may change by external
 # factors.
