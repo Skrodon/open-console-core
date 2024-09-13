@@ -40,6 +40,7 @@ my @tokens = qw(
 	new_token
 	reseed_tokens
 	in_token_class
+	is_valid_token
 );
 
 our @EXPORT_OK = (@is_valid, @validators, @bool, @tokens, qw(
@@ -159,7 +160,7 @@ my $token_generator = Session::Token->new;
 sub new_token($)      { state $i = $::app->config->{instance}; "$i:${_[0]}:" . $token_generator->get }
 sub reseed_tokens()   { $token_generator = Session::Token->new }
 sub is_valid_token($) { $_[0] =~ m!^[a-z0-9]{5,8}\:[A-Z]\:[a-zA-Z0-9]{10,50}$! }
-sub in_token_class($) { $_[0] =~ m!\:(.)\:! && $1 eq $_[1] }
+sub in_token_class($$){ $_[0] =~ m!\:(.)\:! && $1 eq $_[1] }
 
 #-----------
 =section Browser client

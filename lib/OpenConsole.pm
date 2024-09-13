@@ -44,9 +44,9 @@ The C<users> database (M<OpenConsole::Model::Users>), contains generic user and 
 information.  It is important data, and inconsistencies in the administration shall not
 happen at any cost.
 
-=method proofs
-The C<proofs> database (M<OpenConsole::Model::Proofs>) contains the proof
-and contract administration.  Less important than the C<users> database information.
+=method assets
+The C<assets> database (M<OpenConsole::Model::Assets>) contains the proof,
+contract, and service administration.  Less important than the C<users> database information.
 =cut
 
 my %_dbservers;
@@ -63,9 +63,9 @@ sub users()
 	state $u = $self->_mango('OpenConsole::Model::Users' => $self->config->{userdb});
 }
 
-sub proofs()
+sub assets()
 {	my $self = shift;
-	state $u = $self->_mango('OpenConsole::Model::Proofs' => $self->config->{proofdb});
+	state $u = $self->_mango('OpenConsole::Model::Asseets' => $self->config->{assetsdb});
 }
 
 #----------------
@@ -97,7 +97,7 @@ sub startup
 	%admins = map +(lc($_) => 1), @{$config->{admins} || []};
 
 	$self->users->upgrade;
-	$self->proofs->upgrade;
+	$self->assets->upgrade;
 
 #$::app->users->db->collection('accounts')->remove({});  #XXX hack clean whole accounts table
 

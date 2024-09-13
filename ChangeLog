@@ -7,6 +7,7 @@ version 0.02:
 	- add ::Util::domain_suffix()
 	- add ::Proof::Website::hostUTF8()
 	- ::Util token work
+	- introduce more abstract Asset, which takes most of Proof
 
 version 0.01: Wed Sep 09 09:21:50 PM CEST 2024
 	- Initial

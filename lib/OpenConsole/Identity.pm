@@ -6,7 +6,8 @@ use Mojo::Base 'OpenConsole::Mango::Object';
 
 use Log::Report 'open-console-core';
 
-use OpenConsole::Util  qw(new_token);
+use OpenConsole::Util   qw(new_token);
+use OpenConsole::Assets ();
 
 use constant IDENTITY_SCHEMA => '20240111';
 
@@ -74,10 +75,10 @@ sub link()       { '/dashboard/identity/' . $_[0]->identityId }
 sub nameInGroup() { $_[0]->fullname || $_[0]->nickname || $_[0]->role }
 
 #-------------
-=section Proofs
+=section Assets
 =cut
 
-sub proofs() { $_[0]->{OI_proofs} ||= OpenConsole::Proofs->new(owner => $_[0]) }
+sub assets() { $_[0]->{OI_assets} ||= OpenConsole::Assets->new(owner => $_[0]) }
 
 #-------------
 =section Actions

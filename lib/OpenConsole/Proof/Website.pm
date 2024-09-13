@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: EUPL-1.2-or-later
 
 package OpenConsole::Proof::Website;
-use Mojo::Base 'OpenConsole::Proof';
+use Mojo::Base 'OpenConsole::Asset::Proof';
 
 use Log::Report 'open-console-core';
 

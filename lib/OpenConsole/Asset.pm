@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2024 Mark Overmeer <mark@open-console.eu>
 # SPDX-License-Identifier: EUPL-1.2-or-later
 
-package OpenConsole::Proof;
+package OpenConsole::Asset;
 use Mojo::Base 'OpenConsole::Mango::Object';
 
 use Log::Report 'open-console-core';
@@ -12,7 +12,7 @@ use DateTime      ();
 use OpenConsole::Util  qw(bson2datetime new_token);
 
 =chapter NAME
-OpenConsole::Proof - base class for any kind of collected proof
+OpenConsole::Asset - base class for any kind of collectables
 
 =chapter DESCRIPTION
 Base class for all kinds of proofs of ownership.
@@ -26,8 +26,6 @@ sub create($%)
 	$insert->{schema} or panic;
 	$insert->{set}       = $class->set;
 	$insert->{proofid}   = 'new';
-	$insert->{status}    = 'unproven';
-	$insert->{score}     = 0;
 
 	my $owner = delete $insert->{owner} or panic;
 	$insert->{ownerid}   = $owner->ownerId;
@@ -61,7 +59,10 @@ sub ownerClass() { $_[0]->_data->{ownerclass} }
 sub ownerId()    { $_[0]->_data->{ownerid} }
 sub proofId()    { $_[0]->_data->{proofid} }
 sub schema()     { $_[0]->_data->{schema} }
-sub status()     { $_[0]->_data->{status} }
+
+#-------------
+=section Maintainance
+=cut
 
 sub hasExpired()
 {	my $self = shift;
@@ -70,20 +71,13 @@ sub hasExpired()
 	$self->{OP_dead} = defined $exp ? $exp < DateTime->now : 0;
 }
 
-#### after a proof is delivered
-
 sub expires()
 {	my $self = shift;
 	return $self->{OP_exp} if exists $self->{OP_exp};
 
 	my $exp = $self->_data->{expires};
-	$self->{OP_exp} = $exp ? (bson2datetime $exp, $self->timezone) : undef;
+	$self->{OP_exp} = $exp ? bson2datetime($exp, $self->timezone) : undef;
 }
-
-sub study()       { $_[0]->_data->{study} || {} }
-sub algorithm()   { $_[0]->study->{algorithm} || 'none' }
-sub algoVersion() { $_[0]->study->{version}   || 'error' }
-sub verified()    { $_[0]->study->{verified}  || 'error' }
 
 #-------------
 =section Ownership
@@ -133,16 +127,6 @@ sub changeOwner($$)
 }
 
 #-------------
-=section Validation
-
-Validation administration.
-=cut
-
-sub invalidate() { $_[0]->setData(status => 'unproven') }
-sub accepted()   { $_[0]->setData(expires => undef, status => 'proven') }
-sub isValid()    { $_[0]->status eq 'proven' }   # expiration is checked at db-load
-
-#-------------
 =section Action
 
 =method save %options
@@ -158,11 +142,10 @@ they are sure that no user action is required.
 
 sub save(%)
 {   my ($self, %args) = @_;
-	$self->setData(proofid => new_token 'P') if $self->proofId eq 'new';
 
 	if($args{by_user})
     {	$self->setData(schema => $self->schema);
-		$self->log('changed proof settings');
+		$self->log('user upgrade asset structure');
 	}
 
     $::app->proofs->saveProof($self);
@@ -173,15 +156,5 @@ Flag this proof for deletion.
 =cut
 
 sub delete() { $::app->proofs->deleteProof($_[0]) }
-
-=method score %options
-Rate the quality of the proof.  The higher the value, the better the
-proof.  A value of '0' means "no proof".
-
-The actual score can depend on many factors, which may even be controlled
-by the Service.  Therefore, the C<score> needs to be recomputed often.
-=cut
-
-sub score() { panic "must be extended" }
 
 1;

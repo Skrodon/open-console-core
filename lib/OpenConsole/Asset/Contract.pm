@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2024 Mark Overmeer <mark@open-console.eu>
 # SPDX-License-Identifier: EUPL-1.2-or-later
 
-package OpenConsole::Contract;
+package OpenConsole::Asset::Contract;
 use Mojo::Base 'OpenConsole::Mango::Object';
 
 use Log::Report 'open-console-core';
@@ -13,9 +13,13 @@ use constant {
 };
 
 =chapter NAME
-OpenConsole::Contract - a contract between an account and a service
+OpenConsole::Asset::Contract - a contract between an account and a service
 
 =chapter DESCRIPTION
+A "contract" is an agreement between an personal or group Identity and a 
+service provider.  The service provider is a group identity.
+
+=chapter METHODS
 =section Constructors
 =cut
 

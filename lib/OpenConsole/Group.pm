@@ -10,7 +10,7 @@ use Scalar::Util qw(blessed);
 use List::Util   qw(first);
 
 use OpenConsole::Util     qw(new_token);
-use OpenConsole::Proofs   ();
+use OpenConsole::Assets   ();
 
 use constant
 {	GROUP_SCHEMA => '20240112',
@@ -211,10 +211,10 @@ sub findMemberWithEmail($)
 }
 
 #-------------
-=section Proofs
+=section Assets
 =cut
 
-sub proofs() { $_[0]->{OG_proofs} ||= OpenConsole::Proofs->new(owner => $_[0]) }
+sub assets() { $_[0]->{OG_assets} ||= OpenConsole::Assets->new(owner => $_[0]) }
 
 #-------------
 =section Actions

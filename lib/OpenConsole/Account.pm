@@ -13,7 +13,7 @@ use Crypt::PBKDF2     ();
 
 use OpenConsole::Util     qw(new_token);
 use OpenConsole::Identity ();
-use OpenConsole::Proofs   ();
+use OpenConsole::Assets   ();
 
 my $crypt = Crypt::PBKDF2->new;
 use constant ACCOUNT_SCHEMA => '20240102';
@@ -258,21 +258,26 @@ sub groups
 }
 
 #-------------
-=section Proofs
+=section Assets
 =cut
 
-sub proofs() {	$_[0]->{OA_proofs} ||= OpenConsole::Proofs->new(owner => $_[0]) }
+sub assets() { $_[0]->{OA_assets} ||= OpenConsole::Assets->new(owner => $_[0]) }
 
-# proof may be missing when the world meanwhile changed
-sub proof($$)
-{	my ($self, $set, $proofid) = @_;
+# Asset may be missing when the world meanwhile changed
+sub asset($$)
+{	my ($self, $set, $assetid) = @_;
 
-	my $proof = $self->proofs->proof($set, $proofid);
-	return $proof if $proof;
+	my $asset = $self->assets->asset($set, $assetid);
+	return $asset if $asset;
+
+	foreach my $identity ($self->groups)
+	{   $asset = $identity->assets->asset($set, $assetid);
+		return $asset if $asset;
+	}
 
 	foreach my $group ($self->groups)
-	{   $proof = $group->proofs->proof($set, $proofid);
-		return $proof if $proof;
+	{   $asset = $group->assets->asset($set, $assetid);
+		return $asset if $asset;
 	}
 
 	undef;

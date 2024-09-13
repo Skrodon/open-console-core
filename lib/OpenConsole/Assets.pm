@@ -1,28 +1,32 @@
 # SPDX-FileCopyrightText: 2024 Mark Overmeer <mark@open-console.eu>
 # SPDX-License-Identifier: EUPL-1.2-or-later
 
-package OpenConsole::Proofs;
+package OpenConsole::Assets;
 use Mojo::Base -base;
 
 use Log::Report 'open-console-core';
-
-#XXX "Proofs" may have been "Collectables", but in the wider sence, a contract
-#XXX is also a kind of proof: a proof that you agreed communicating.
 
 use Scalar::Util    qw(blessed);
 
 use OpenConsole::Proof::EmailAddr ();
 use OpenConsole::Proof::Website   ();
+use OpenConsole::Asset::Contract  ();
+use OpenConsole::Asset::Service   ();
 
-my %proofclass = (
+# All ::Proof:: extends ::Asset
+my %asset_class = (
 	emailaddrs => 'OpenConsole::Proof::EmailAddr',
 	websites   => 'OpenConsole::Proof::Website',
+	contracts  => 'OpenConsole::Asset::Contract',
+	services   => 'OpenConsole::Asset::Service',
 );
 
 =chapter NAME
-OpenConsole::Proofs - base-class for any kind of proof
+OpenConsole::Assets - handling sets of Assets
 
 =chapter DESCRIPTION
+Manage a set of assets for an owner, which could be an Account, an
+(personal) Identity, or a Group (Identity).
 
 =chapter METHODS
 =section Constructors
@@ -44,39 +48,38 @@ sub ownedByIdentity() { $_[0]->owner->isa('OpenConsole::Identity') }
 sub ownedByGroup()    { $_[0]->owner->isa('OpenConsole::Group')    }
 
 #------------------
-=section Separate Proofs
+=section Separate Assets
 
-=ci_method proofFromDB $data
+=ci_method assetFromDB $data
 =cut
 
-sub proofFromDB($)
+sub assetFromDB($)
 {	my ($thing, $data) = @_;
 	my $set   = $data->{set};
-	my $class = $proofclass{$set} or panic "Unknown proof set '$set'";
+	my $class = $asset_class{$set} or panic "Unknown asset set '$set'";
 	$class->fromDB($data);
 }
 
 =method for SET
-We are always loading whole sets of proofs at once, because we usually need them all and there are
+We are always loading whole sets of assets at once, because we usually need them all and there are
 usually just a few.
 =cut
 
 sub _set($)
 {	my ($self, $set) = @_;
-	$self->{"OP_$set"} ||= +{ map +($_->proofId => $_),  $::app->proofs->proofSearch($set, $self->ownerId) };
+	$self->{"OP_$set"} ||= +{ map +($_->id => $_),  $::app->assets->assetSearch($set, $self->ownerId) };
 }
 
 sub for($) { my $set = $_[0]->_set($_[1]); sort { $a->sort cmp $b->sort } values %$set }
 
-sub proof($$)
-{	my ($self, $set, $proofid) = @_;
+sub asset($$)
+{	my ($self, $set, $asset_id) = @_;
 	my $list = $self->_set($set);
-	$list->{$proofid};
+	$list->{$asset_id};
 }
 
 #------------------
 =section Actions
 =cut
-
 
 1;
