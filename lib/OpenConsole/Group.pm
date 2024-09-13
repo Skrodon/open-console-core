@@ -12,10 +12,6 @@ use List::Util   qw(first);
 use OpenConsole::Util     qw(new_token);
 use OpenConsole::Assets   ();
 
-use constant
-{	GROUP_SCHEMA => '20240112',
-};
-
 =chapter NAME
 OpenConsole::Group - Manage a group of users
 
@@ -31,7 +27,6 @@ sub create($%)
 
 	my %insert =
 	  (	groupid     => 'new',
-		schema      => GROUP_SCHEMA,
 		language    => $account->preferredLanguage,
 		timezone    => $account->timezone || 'GMT',
 		members     => [],
@@ -42,11 +37,6 @@ sub create($%)
 	$self;
 }
 
-#sub fromDB($)
-#{	my ($class, $data) = @_;
-#	$class->SUPER::fromDB($data);
-#}
-
 #-------------
 =section Attributes
 =cut
@@ -54,7 +44,7 @@ sub create($%)
 # Keep these attributes in sync with the OwnerConsole/Controller/Groups.pm
 # method submit_group()
 
-sub schema()     { $_[0]->_data->{schema} }
+sub schema()     { '20240112' }
 sub ownerId()    { $_[0]->groupId }
 
 sub groupId()    { $_[0]->_data->{groupid} }
@@ -230,7 +220,7 @@ sub save(%)
 {   my ($self, %args) = @_;
 	$self->_data->{groupid} = new_token 'G' if $self->groupId eq 'new';
 	if($args{by_user})
-    {	$self->_data->{schema} = GROUP_SCHEMA;
+    {	$self->_data->{schema} = $self->schema;
 		$self->log('changed group settings');
 	}
     $::app->users->saveGroup($self);

@@ -16,7 +16,6 @@ use OpenConsole::Identity ();
 use OpenConsole::Assets   ();
 
 my $crypt = Crypt::PBKDF2->new;
-use constant ACCOUNT_SCHEMA => '20240102';
 
 =chapter NAME
 OpenConsole::Account - a user's login
@@ -28,7 +27,6 @@ OpenConsole::Account - a user's login
 sub create($%)
 {	my ($class, $insert, %args) = @_;
 	my $userid = $insert->{userid} = new_token 'A';
-	$insert->{schema}    //= ACCOUNT_SCHEMA;
 	$insert->{languages} //= [ 'en', 'nl' ];
 	$insert->{iflang}    //= 'en';
 
@@ -43,7 +41,7 @@ sub create($%)
 
 sub fromDB($)
 {   my ($class, $data) = @_;
-	if($data->{schema} < ACCOUNT_SCHEMA) {
+	if($data->{schema} < $self->schema) {
 		# We may need to upgrade the user object partially automatically,
 		# partially with the user's help.
 	}
@@ -56,7 +54,7 @@ sub fromDB($)
 
 #### Keep these attributes in sync with OwnerConsole::Collector::Account::submit()
 
-sub schema()    { $_[0]->_data->{schema} }
+sub schema()    { '20240102' }
 sub ownerId()   { $_[0]->userId }
 
 sub userId()    { $_[0]->_data->{userid} }
@@ -297,7 +295,7 @@ sub save(%)
 {	my ($self, %args) = @_;
 
 	if($args{by_user})
-	{	$self->_data->{schema} = ACCOUNT_SCHEMA;
+	{	$self->_data->{schema} = $self->schema;
 		$self->log('Changed account settings');
 		delete $self->_data->{reset};   # leave the reset procedure
 	}

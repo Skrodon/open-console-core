@@ -6,10 +6,6 @@ use Mojo::Base 'OpenConsole::Asset::Proof';
 
 use Log::Report 'open-console-core';
 
-use constant {
-	ADDR1_SCHEMA => '20240210',
-};
-
 =chapter NAME
 OpenConsole::Proof::EmailAddr - collectable proof of website ownership
 
@@ -20,23 +16,15 @@ OpenConsole::Proof::EmailAddr - collectable proof of website ownership
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
-	$insert->{schema}  ||= ADDR1_SCHEMA;
 	$insert->{sub_addressing} //= 0;
-
-	my $self = $class->SUPER::create($insert, %args);
-	$self;
+	$class->SUPER::create($insert, %args);
 }
-
-#sub fromDB($)
-#{	my ($class, $data) = @_;
-#	$class->SUPER::fromDB($data);
-#}
 
 #-------------
 =section Attributes
 =cut
 
-sub schema()  { ADDR1_SCHEMA }
+sub schema()  { '20240210' }
 sub set()     { 'emailaddrs' }
 sub element() { 'emailaddr'  }
 sub sort()    { lc $_[0]->_data->{email} }

@@ -8,10 +8,6 @@ use Log::Report 'open-console-core';
 
 use Encode       qw(decode);
 
-use constant {
-	CONTRACT_SCHEMA => '20240224',
-};
-
 =chapter NAME
 OpenConsole::Asset::Contract - a contract between an account and a service
 
@@ -25,22 +21,15 @@ service provider.  The service provider is a group identity.
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
-	$insert->{schema}  ||= CONTRACT_SCHEMA;
-
 	my $self = $class->SUPER::create($insert, %args);
 	$self;
 }
-
-#sub fromDB($)
-#{	my ($class, $data) = @_;
-#	$class->SUPER::fromDB($data);
-#}
 
 #-------------
 =section Attributes
 =cut
 
-sub schema() { CONTRACT_SCHEMA }
+sub schema() { '20240224' }
 sub set()    { 'contracts' }
 sub element(){ 'contract'  }
 

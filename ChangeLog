@@ -8,6 +8,7 @@ version 0.02:
 	- add ::Proof::Website::hostUTF8()
 	- ::Util token work
 	- introduce more abstract Asset, which takes most of Proof
+	- simplify use of schema (object version)
 
 version 0.01: Wed Sep 09 09:21:50 PM CEST 2024
 	- Initial

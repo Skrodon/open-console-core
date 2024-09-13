@@ -9,8 +9,6 @@ use Log::Report 'open-console-core';
 use OpenConsole::Util   qw(new_token);
 use OpenConsole::Assets ();
 
-use constant IDENTITY_SCHEMA => '20240111';
-
 =chapter NAME
 OpenConsole::Identity - a person's identity
 
@@ -38,7 +36,6 @@ sub create($%)
 
 	my %insert =
 	  (	identid  => 'new',
-		schema   => IDENTITY_SCHEMA,
 		userid   => $account->userId,
 		gender   => $account->gender,
 		language => $account->preferredLanguage,
@@ -54,7 +51,7 @@ sub create($%)
 # Keep these attributes in sync with the OwnerConsole/Controller/Identities.pm
 # method submit_identity()
 
-sub schema()     { $_[0]->_data->{schema} }
+sub schema()     { '20240111' }
 sub ownerId()    { $_[0]->identityId }
 
 sub identityId() { $_[0]->_data->{identid} }
@@ -96,7 +93,7 @@ sub save(%)
 {   my ($self, %args) = @_;
 	$self->_data->{identid} = new_token 'I' if $self->identityId eq 'new';
 	if($args{by_user})
-    {	$self->_data->{schema} = IDENTITY_SCHEMA;
+    {	$self->_data->{schema} = $self->schema;
 		$self->log('changed identity settings');
 	}
     $::app->users->saveIdentity($self);

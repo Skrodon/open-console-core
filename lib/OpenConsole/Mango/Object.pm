@@ -43,12 +43,16 @@ the M<element()> followed by a C<s>.
 
 =method element
 The type of element this object presents.
+
+=method schema
+The version of the current implementation
 =cut
 
 sub id()      { $_[0]->_data->{id} }
 sub created() { my $c = $_[0]->_data->{created}; $c ? $c->to_datetime : undef }
 sub set()     { ... }
 sub element() { ... }
+sub schema()  { ... }
 
 =method sort
 The key to be used when sorting this kind of objects.

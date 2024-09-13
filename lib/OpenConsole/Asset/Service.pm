@@ -8,10 +8,6 @@ use Log::Report 'open-console-core';
 
 use Encode       qw(decode);
 
-use constant {
-	SERVICE_SCHEMA => '20240912',
-};
-
 =chapter NAME
 OpenConsole::Asset::Service - describes a Service
 
@@ -28,22 +24,15 @@ negotiate a "contract" of usage.
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
-	$insert->{schema}  ||= SERVICE_SCHEMA;
-
 	my $self = $class->SUPER::create($insert, %args);
 	$self;
 }
-
-#sub fromDB($)
-#{	my ($class, $data) = @_;
-#	$class->SUPER::fromDB($data);
-#}
 
 #-------------
 =section Attributes
 =cut
 
-sub schema() { SERVICE_SCHEMA }
+sub schema() { '20240912' }
 sub set()    { 'services' }
 sub element(){ 'service'  }
 

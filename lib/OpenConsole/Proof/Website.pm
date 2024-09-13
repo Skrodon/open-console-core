@@ -8,17 +8,13 @@ use Log::Report 'open-console-core';
 
 use OpenConsole::Util;
 
-use Net::LibIDN  qw(idn_to_unicode);
 use Encode       qw(decode);
-
-use constant {
-	WEB1_SCHEMA => '20240218',
-};
 
 =chapter NAME
 OpenConsole::Proof::Website - collects proofs of website ownership
 
 =chapter DESCRIPTION
+Contains a proof of website ownership.
 
 =chapter METHODS
 =section Constructors
@@ -26,22 +22,14 @@ OpenConsole::Proof::Website - collects proofs of website ownership
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
-	$insert->{schema}    ||= WEB1_SCHEMA;
-
-	my $self = $class->SUPER::create($insert, %args);
-	$self;
+	$class->SUPER::create($insert, %args);
 }
-
-#sub fromDB($)
-#{	my ($class, $data) = @_;
-#	$class->SUPER::fromDB($data);
-#}
 
 #-------------
 =section Attributes
 =cut
 
-sub schema() { WEB1_SCHEMA }
+sub schema() { '20240218' }
 sub set()    { 'websites' }
 sub element(){ 'website'  }
 sub sort()   { lc $_[0]->_data->{website} }

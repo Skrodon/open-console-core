@@ -15,7 +15,8 @@ use OpenConsole::Util  qw(bson2datetime new_token);
 OpenConsole::Asset - base class for any kind of collectables
 
 =chapter DESCRIPTION
-Base class for all kinds of proofs of ownership.
+Base class for all kinds of assets which can be collected by
+a login.
 
 =chapter METHODS
 =section Constructors
@@ -58,7 +59,6 @@ sub id() { $_[0]->proofId }
 sub ownerClass() { $_[0]->_data->{ownerclass} }
 sub ownerId()    { $_[0]->_data->{ownerid} }
 sub proofId()    { $_[0]->_data->{proofid} }
-sub schema()     { $_[0]->_data->{schema} }
 
 #-------------
 =section Maintainance
@@ -148,13 +148,13 @@ sub save(%)
 		$self->log('user upgrade asset structure');
 	}
 
-    $::app->proofs->saveProof($self);
+    $::app->asset->saveAsset($self);
 }
 
 =method delete
 Flag this proof for deletion.
 =cut
 
-sub delete() { $::app->proofs->deleteProof($_[0]) }
+sub delete() { $::app->assets->deleteAsset($_[0]) }
 
 1;
