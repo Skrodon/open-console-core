@@ -20,6 +20,9 @@ my $crypt = Crypt::PBKDF2->new;
 =chapter NAME
 OpenConsole::Account - a user's login
 
+=chapter DESCRIPTION
+An Account is a login.
+
 =chapter METHODS
 =section Constructors
 =cut
@@ -55,9 +58,8 @@ sub fromDB($)
 #### Keep these attributes in sync with OwnerConsole::Collector::Account::submit()
 
 sub schema()    { '20240102' }
-sub ownerId()   { $_[0]->userId }
+sub ownerId()   { $_[0]->id }      # I own myself
 
-sub userId()    { $_[0]->_data->{userid} }
 sub email()     { $_[0]->_data->{email}  }
 sub birth()     { $_[0]->_data->{birth_date} }
 sub gender()    { $_[0]->_data->{gender} }
@@ -76,7 +78,7 @@ sub orderedLang() { join ',', $_[0]->languages }
 
 sub nrIdentities { scalar $_[0]->identityIds }
 sub nrGroups     { scalar $_[0]->groupIds }
-sub link()       { '/dashboard/account/' . $_[0]->userId }
+sub link()       { '/dashboard/account/' . $_[0]->id }
 
 =method localTime $timestamp
 Convert a timestamp C<"YYYY-mm-DDTHH::MM::SSZ"> (as produced by M<OpenConsole::Util::timestamp()>)

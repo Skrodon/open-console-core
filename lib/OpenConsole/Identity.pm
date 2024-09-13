@@ -35,8 +35,7 @@ sub create($%)
 {	my ($class, $account, %args) = @_;
 
 	my %insert =
-	  (	identid  => 'new',
-		userid   => $account->userId,
+	  (	userid   => $account->userId,
 		gender   => $account->gender,
 		language => $account->preferredLanguage,
 	  );
@@ -48,14 +47,12 @@ sub create($%)
 =section Attributes
 =cut
 
-# Keep these attributes in sync with the OwnerConsole/Controller/Identities.pm
-# method submit_identity()
-
 sub schema()     { '20240111' }
 sub ownerId()    { $_[0]->identityId }
-
-sub identityId() { $_[0]->_data->{identid} }
 sub userId()     { $_[0]->_data->{userid} }
+
+# Keep these attributes in sync with the OwnerConsole/Controller/Identities.pm
+# method submit_identity()
 
 sub role()       { $_[0]->_data->{role} }
 sub fullname()   { $_[0]->_data->{fullname} }
@@ -67,7 +64,7 @@ sub postal()     { $_[0]->_data->{postal} }
 sub email()      { $_[0]->_data->{email} }
 sub phone()      { $_[0]->_data->{phone} }
 
-sub link()       { '/dashboard/identity/' . $_[0]->identityId }
+sub link()       { '/dashboard/identity/' . $_[0]->id }
 
 sub nameInGroup() { $_[0]->fullname || $_[0]->nickname || $_[0]->role }
 
@@ -91,7 +88,7 @@ sub usedForGroups() { $::app->users->groupsUsingIdentity($_[0]) }
 
 sub save(%)
 {   my ($self, %args) = @_;
-	$self->_data->{identid} = new_token 'I' if $self->identityId eq 'new';
+	$self->_data->{id} = new_token 'I' if $self->id eq 'new';
 	if($args{by_user})
     {	$self->_data->{schema} = $self->schema;
 		$self->log('changed identity settings');

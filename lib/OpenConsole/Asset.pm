@@ -50,15 +50,8 @@ sub fromDB($)
 =section Attributes
 =cut
 
-# Must be extended
-sub id() { $_[0]->proofId }
-
-# Keep these attributes in sync with the OwnerConsole/Controller/Proof.pm
-# method submit_group()
-
 sub ownerClass() { $_[0]->_data->{ownerclass} }
 sub ownerId()    { $_[0]->_data->{ownerid} }
-sub proofId()    { $_[0]->_data->{proofid} }
 
 #-------------
 =section Maintainance
@@ -78,10 +71,6 @@ sub expires()
 	my $exp = $self->_data->{expires};
 	$self->{OP_exp} = $exp ? bson2datetime($exp, $self->timezone) : undef;
 }
-
-#-------------
-=section Ownership
-=cut
 
 sub owner($)
 {	my ($self, $account) = @_;
@@ -142,10 +131,11 @@ they are sure that no user action is required.
 
 sub save(%)
 {   my ($self, %args) = @_;
+	$self->id ne 'new' or panic "assign an id before saving";
 
 	if($args{by_user})
     {	$self->setData(schema => $self->schema);
-		$self->log('user upgrade asset structure');
+		$self->log('user upgraded asset structure');
 	}
 
     $::app->asset->saveAsset($self);

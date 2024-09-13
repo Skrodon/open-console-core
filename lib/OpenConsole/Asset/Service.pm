@@ -39,4 +39,14 @@ sub element(){ 'service'  }
 sub sort()   { lc $_[0]->_data->{name} }
 sub name()   { $_[0]->_data->{name} }
 
+#-------------
+=section Action
+=cut
+
+sub save(%)
+{   my ($self, %args) = @_;
+	$self->setData(id => new_token 'S') if $self->id eq 'new';
+	$self->SUPER::save(%args);
+}
+
 1;

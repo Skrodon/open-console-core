@@ -26,8 +26,7 @@ sub create($%)
 {	my ($class, $account, %args) = @_;
 
 	my %insert =
-	  (	groupid     => 'new',
-		language    => $account->preferredLanguage,
+	  (	language    => $account->preferredLanguage,
 		timezone    => $account->timezone || 'GMT',
 		members     => [],
 	  );
@@ -41,13 +40,11 @@ sub create($%)
 =section Attributes
 =cut
 
+sub schema()     { '20240112' }
+
 # Keep these attributes in sync with the OwnerConsole/Controller/Groups.pm
 # method submit_group()
 
-sub schema()     { '20240112' }
-sub ownerId()    { $_[0]->groupId }
-
-sub groupId()    { $_[0]->_data->{groupid} }
 sub country()    { $_[0]->_data->{country} }
 sub department() { $_[0]->_data->{department} }
 sub email()      { $_[0]->_data->{email} }
@@ -60,7 +57,7 @@ sub phone()      { $_[0]->_data->{phone} }
 sub postal()     { $_[0]->_data->{postal} }
 sub timezone()   { $_[0]->_data->{timezone} }
 
-sub link()       { '/dashboard/group/' . $_[0]->groupId }
+sub link()       { '/dashboard/group/' . $_[0]->id }
 
 #-------------
 =section Accepted Members
@@ -75,9 +72,9 @@ Structure: ARRAY of
 
 sub addMember($$)
 {	my ($self, $account, $identity) = @_;
-	my $id  = blessed $identity ? $identity->identityId : $identity;
-	my $aid = $account->userId;
-	my $gid = $self->groupId;
+	my $id  = blessed $identity ? $identity->id : $identity;
+	my $aid = $account->id;
+	my $gid = $self->id;
 
 	if(my $has = $self->hasMemberFrom($account))
 	{	if($has->{identid} ne $id)
@@ -125,7 +122,7 @@ sub allMembers(%)
 {	my ($self, %args) = @_;
 	my $load  = $args{get_identities};
 
-	my $gid   = $self->groupId;
+	my $gid   = $self->id;
 	my $users = $::app->users;
 
 	my @members;
@@ -218,7 +215,7 @@ sub remove()
 
 sub save(%)
 {   my ($self, %args) = @_;
-	$self->_data->{groupid} = new_token 'G' if $self->groupId eq 'new';
+	$self->_data->{id} = new_token 'G' if $self->id eq 'new';
 	if($args{by_user})
     {	$self->_data->{schema} = $self->schema;
 		$self->log('changed group settings');

@@ -23,7 +23,6 @@ Base class for all kinds of proofs of ownership.
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
-	$insert->{proofid}   = 'new';
 	$insert->{status}    = 'unproven';
 	$insert->{score}     = 0;
 
@@ -66,7 +65,7 @@ sub isValid()    { $_[0]->status eq 'proven' }   # expiration is checked at db-l
 
 sub save(%)
 {   my ($self, %args) = @_;
-	$self->setData(proofid => new_token 'P') if $self->proofId eq 'new';
+	$self->setData(id => new_token 'P') if $self->id eq 'new';
 	$self->SUPER::save(%args);
 }
 

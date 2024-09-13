@@ -23,7 +23,9 @@ sub fromDB($)
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
-	$insert->{created} = Mango::BSON::Time->new;
+	$insert->{id}      ||= 'new';
+	$insert->{schema}  ||= $class->schema;
+	$insert->{created}   = Mango::BSON::Time->new;
 	$class->new(_data => $insert, %args);
 }
 
