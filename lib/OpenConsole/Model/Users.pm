@@ -45,15 +45,17 @@ sub upgrade
 	# We can run "ensure_index()" as often as we want.
 
 #$self->accounts->drop_index('email');
-
+	$self->accounts->ensure_index({ id  => 1 }, { unique => bson_true });
 	$self->accounts->ensure_index({ email  => 1 }, {
 		unique    => bson_true,
 		collation => { locale => 'en', strength => 2 },  # address is case-insensitive
 	});
 
 #$self->identities->drop_index('userid');
+	$self->identities->ensure_index({ id  => 1 }, { unique => bson_true });
 	$self->identities->ensure_index({ userid  => 1 }, { unique => bson_false });
 
+	$self->groups->ensure_index({ id  => 1 }, { unique => bson_true });
 	$self->groups->ensure_index({ userid  => 1 }, { unique => bson_false });
 	$self->groups->ensure_index({ identid => 1 }, { unique => bson_false });
 	$self;

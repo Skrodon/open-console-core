@@ -50,11 +50,13 @@ The type of element this object presents.
 The version of the current implementation
 =cut
 
+# Mongo: When an object has been created, its id is not in _id
 sub id()      { $_[0]->_data->{id} }
+
 sub created() { my $c = $_[0]->_data->{created}; $c ? $c->to_datetime : undef }
-sub set()     { ... }
-sub element() { ... }
-sub schema()  { ... }
+sub set()     { panic }
+sub element() { panic }
+sub schema()  { '' }    # some objects will not be saved
 
 =method sort
 The key to be used when sorting this kind of objects.

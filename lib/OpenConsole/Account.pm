@@ -29,7 +29,7 @@ An Account is a login.
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
-	my $userid = $insert->{userid} = new_token 'A';
+	my $userid = $insert->{id} = new_token 'A';
 	$insert->{languages} //= [ 'en', 'nl' ];
 	$insert->{iflang}    //= 'en';
 
@@ -44,7 +44,7 @@ sub create($%)
 
 sub fromDB($)
 {   my ($class, $data) = @_;
-	if($data->{schema} < $self->schema) {
+	if($data->{schema} < $class->schema) {
 		# We may need to upgrade the user object partially automatically,
 		# partially with the user's help.
 	}
@@ -292,7 +292,8 @@ sub asset($$)
 
 sub remove()
 {	my $self = shift;
-    $_->remove($self) for $self->groups, $self->identities;
+    $self->removeGroup($_)    for $self->groups;
+	$self->removeIdentity($_) for $self->identities;
     $::app->batch->removeEmailsRelatedTo($self->id);
 }
 

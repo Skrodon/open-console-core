@@ -24,9 +24,7 @@ a login.
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
-	$insert->{schema} or panic;
 	$insert->{set}       = $class->set;
-	$insert->{proofid}   = 'new';
 
 	my $owner = delete $insert->{owner} or panic;
 	$insert->{ownerid}   = $owner->id;

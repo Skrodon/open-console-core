@@ -18,6 +18,10 @@ OpenConsole::Model::Assets - database for collected assets
 collections:
 =over 4
 =item * 'assets'
+All kinds of collectables are put in the same table: proofs, contracts, services, and
+more to come.  They are only accessible via their id and they owner (Account, Identity,
+Group).
+
 =back
 
 =cut
@@ -28,10 +32,11 @@ collections:
 =cut
 
 has db         => undef;
-has assets     => sub { $_[0]->{OMB_assets}  ||= $_[0]->db->collection('assets')};
+has assets     => sub { $_[0]->{OMB_assets} ||= $_[0]->db->collection('assets')};
 
 sub upgrade
 {	my $self = shift;
+	$self->assets->ensure_index({ id => 1 }, { unique => bson_true });
 	$self->assets->ensure_index({ ownerid => 1 }, { unique => bson_false });
 	$self;
 }

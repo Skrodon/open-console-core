@@ -67,7 +67,7 @@ usually just a few.
 
 sub _set($)
 {	my ($self, $set) = @_;
-	$self->{"OP_$set"} ||= +{ map +($_->id => $_),  $::app->assets->assetSearch($set, $self->ownerId) };
+	$self->{"OA_$set"} ||= +{ map +($_->id => $_),  $::app->assets->assetSearch($set, $self->ownerId) };
 }
 
 sub for($) { my $set = $_[0]->_set($_[1]); sort { $a->sort cmp $b->sort } values %$set }
