@@ -12,7 +12,7 @@ use List::Util  qw(first);
 
 use OpenConsole::Util          qw(reseed_tokens);
 use OpenConsole::Model::Users  ();
-use OpenConsole::Model::Proofs ();
+use OpenConsole::Model::Assets ();
 
 use Mango;
 use constant
@@ -53,19 +53,19 @@ my %_dbservers;
 sub _mango($)  # server connections shared, when databases on same server
 {	my ($self, $class, $model) = @_;
 	my $config = $self->config($model);
-    my $server = $config->{server} || MONGODB_CONNECT;
+    my $server = $config->{server}    || MONGODB_CONNECT;
 	my $client = $_dbservers{$server} ||= Mango->new($server);
 	$class->new(db => $client->db($config->{dbname}));
 }
 
 sub users()
 {	my $self = shift;
-	state $u = $self->_mango('OpenConsole::Model::Users' => $self->config->{userdb});
+	state $u = $self->_mango('OpenConsole::Model::Users' => 'userdb');
 }
 
 sub assets()
 {	my $self = shift;
-	state $u = $self->_mango('OpenConsole::Model::Asseets' => $self->config->{assetsdb});
+	state $u = $self->_mango('OpenConsole::Model::Assets' => 'assetsdb');
 }
 
 #----------------
