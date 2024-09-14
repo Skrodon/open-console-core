@@ -56,6 +56,8 @@ sub fromDB($)
 =cut
 
 sub schema()    { '20240102' }
+sub element()   { 'account' }
+sub set()       { 'accounts' }
 
 #### Keep these attributes in sync with OwnerConsole::Collector::Account::submit()
 
@@ -155,13 +157,14 @@ sub addIdentity($)  # by id or object
 
 sub removeIdentity($)
 {	my ($self, $identity) = @_;
-	$identity->_remove($self);
 
 	my $id  = $identity->id;
-	$self->_data->{identities} = [ grep $_ ne $id, $self->identityIds ];
+	$self->setData(identities => [ grep $_ ne $id, $self->identityIds ]);
 	delete $self->{OA_ids};
 	$self->log("Removed identity $id");
-	$::app->users->saveAccount($self);
+
+	$identity->remove($self);
+	$self->save;
 	$self;
 }
 
@@ -273,7 +276,7 @@ sub asset($$)
 	my $asset = $self->assets->asset($set, $assetid);
 	return $asset if $asset;
 
-	foreach my $identity ($self->groups)
+	foreach my $identity ($self->identity)
 	{   $asset = $identity->assets->asset($set, $assetid);
 		return $asset if $asset;
 	}
@@ -290,22 +293,25 @@ sub asset($$)
 =section Actions
 =cut
 
-sub remove()
-{	my $self = shift;
+sub _load($)  { $::app->users->account($_[1]) }
+sub _remove() { $::app->users->removeAccount($_[0]) }
+sub _save()   { $::app->users->saveAccount($_[0])   }
+
+sub remove(%)
+{	my ($self, %args) = @_;
     $self->removeGroup($_)    for $self->groups;
 	$self->removeIdentity($_) for $self->identities;
     $::app->batch->removeEmailsRelatedTo($self->id);
+	$self->SUPER::remove(%args);
 }
 
 sub save(%)
 {	my ($self, %args) = @_;
 
-	if($args{by_user})
-	{	$self->_data->{schema} = $self->schema;
-		$self->log('Changed account settings');
-		delete $self->_data->{reset};   # leave the reset procedure
-	}
-	$::app->users->saveAccount($self);
+	delete $self->_data->{reset}   # leave the reset procedure
+		if $args{by_user};
+
+	$self->SUPER::save(%args);
 }
 
 1;

@@ -63,9 +63,13 @@ sub isValid()    { $_[0]->status eq 'proven' }   # expiration is checked at db-l
 =section Action
 =cut
 
+sub _load($)  { $::app->assets->proof($_[1]) }
+sub _remove() { $::app->assets->removeProof($_[0]) }
+sub _save()   { $::app->assets->saveProof($_[0]) }
+
 sub save(%)
 {   my ($self, %args) = @_;
-	$self->setData(id => new_token 'P') if $self->id eq 'new';
+	$self->setData(id => new_token 'P') if $self->isNew;
 	$self->SUPER::save(%args);
 }
 

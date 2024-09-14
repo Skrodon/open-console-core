@@ -48,11 +48,13 @@ sub create($%)
 =cut
 
 sub schema()     { '20240111' }
-sub userId()     { $_[0]->_data->{userid} }
+sub element()    { 'identity' }
+sub set()        { 'identities' }
 
 # Keep these attributes in sync with the OwnerConsole/Controller/Identities.pm
 # method submit_identity()
 
+sub userId()     { $_[0]->_data->{userid} }
 sub role()       { $_[0]->_data->{role} }
 sub fullname()   { $_[0]->_data->{fullname} }
 sub nickname()   { $_[0]->_data->{nickname} }
@@ -77,22 +79,22 @@ sub assets() { $_[0]->{OI_assets} ||= OpenConsole::Assets->new(owner => $_[0]) }
 =section Actions
 =cut
 
-sub _remove($)
-{	my ($self, $acount) = @_;
+sub _load($)  { $::app->users->identity($_[1]) }
+sub _remove() { $::app->users->removeIdentity($_[0]) }
+sub _save()   { $::app->users->saveIdentity($_[0]) }
+
+sub remove(%)
+{	my ($self, %args) = @_;
 	$::app->batch->removeEmailsRelatedTo($self->id);
-	$::app->users->removeIdentity($self);
+	$self->SUPER::remove(%args);
 }
 
 sub usedForGroups() { $::app->users->groupsUsingIdentity($_[0]) }
 
 sub save(%)
 {   my ($self, %args) = @_;
-	$self->_data->{id} = new_token 'I' if $self->id eq 'new';
-	if($args{by_user})
-    {	$self->_data->{schema} = $self->schema;
-		$self->log('changed identity settings');
-	}
-    $::app->users->saveIdentity($self);
+	$self->setData(id => new_token 'I') if $self->isNew;
+	$self->SUPER::save(%args);
 }
 
 1;

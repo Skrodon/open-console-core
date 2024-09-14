@@ -41,6 +41,8 @@ sub create($%)
 =cut
 
 sub schema()     { '20240112' }
+sub element()    { 'group' }
+sub set()        { 'groups' }
 
 # Keep these attributes in sync with the OwnerConsole/Controller/Groups.pm
 # method submit_group()
@@ -207,21 +209,21 @@ sub assets() { $_[0]->{OG_assets} ||= OpenConsole::Assets->new(owner => $_[0]) }
 =section Actions
 =cut
 
-sub _remove($)
-{	my ($self, $account) = @_;
+sub _load($)  { $::app->users->group($_[1]) }
+sub _remove() { $::app->users->removeGroup($_[0]) }
+sub _save()   { $::app->users->saveGroup($_[0]) }
+
+sub remove(%)
+{	my ($self, %args) = @_;
 	$::app->batch->removeEmailsRelatedTo($self->id);
-    $::app->users->removeGroup($self);
 #XXX Check ownerships which have to be reassigned
+	$self->SUPER::remove(%args);
 }
 
 sub save(%)
 {   my ($self, %args) = @_;
-	$self->_data->{id} = new_token 'G' if $self->id eq 'new';
-	if($args{by_user})
-    {	$self->_data->{schema} = $self->schema;
-		$self->log('changed group settings');
-	}
-    $::app->users->saveGroup($self);
+	$self->setData(id => new_token 'G') if $self->isNew;
+	$self->SUPER::save(%args);
 }
 
 1;

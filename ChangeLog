@@ -10,6 +10,7 @@ version 0.02:
 	- introduce more abstract Asset, which takes most of Proof
 	- simplify use of schema (object version)
 	- promote unique tokens to replace database id
+	- uniform load/remove/save
 
 version 0.01: Wed Sep 09 09:21:50 PM CEST 2024
 	- Initial

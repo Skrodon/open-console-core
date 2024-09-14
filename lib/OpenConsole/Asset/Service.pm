@@ -44,9 +44,13 @@ sub name()   { $_[0]->_data->{name} }
 =section Action
 =cut
 
+sub _load($)  { $::app->assets->service($_[1]) }
+sub _remove() { $::app->assets->removeService($_[0]) }
+sub _save()   { $::app->assets->saveService($_[0]) }
+
 sub save(%)
 {   my ($self, %args) = @_;
-	$self->setData(id => new_token 'S') if $self->id eq 'new';
+	$self->setData(id => new_token 'S') if $self->isNew;
 	$self->SUPER::save(%args);
 }
 

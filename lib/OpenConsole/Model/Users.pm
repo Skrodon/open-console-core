@@ -112,6 +112,12 @@ sub identity($)
 	OpenConsole::Identity->fromDB($data);
 }
 
+sub identitiesOf($)
+{	my ($self, $account) = @_;
+	map OpenConsole::Identity->fromDB($_),
+		$self->identities->find({userid => $account->id})->all;
+}
+
 sub removeIdentity($)
 {	my ($self, $identity) = @_;
 	$self->identities->remove({identid => $identity->id});
@@ -126,7 +132,6 @@ sub allIdentities()
 {	my $self = shift;
 	$self->identities->find->all;
 }
-
 
 #---------------------
 =section The "group" table

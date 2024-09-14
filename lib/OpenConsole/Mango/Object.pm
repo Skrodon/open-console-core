@@ -16,9 +16,15 @@ OpenConsole::Mango::Object - base for any database storable object
 
 use Data::Dumper;
 $Data::Dumper::Indent = 1;
+
 sub fromDB($)
 {	my ($class, $data) = @_;
 	$class->new(_data => $data);
+}
+
+sub fromSummary($)
+{	my ($class, $data) = @_;
+	$class->new(_sum => $data);
 }
 
 sub create($%)
@@ -77,12 +83,36 @@ sub elemLink() { '/dashboard/' . $_[0]->element . '/' . $_[0]->id }
 =section Data
 =cut
 
-has _data => sub { +{} };
+# hidden for anything else than the core data objects.
+sub _data() { $_[0]->{_data} ||= $_[0]->_loadData }
+
+sub _loadData()
+{
+}
+
+=method toDB
+Convert the crucial object data into a structure to be saved in the database.
+=cut
 
 sub toDB()       { $_[0]->_data }  #XXX might become more complex later
 
+=method changed
+Flags that the data has been changed.
+
+=method hasChanged
+Checks whether the data is flagged to have changed.
+=cut
+
 sub changed()    { ++$_[0]->{OP_changed} }
 sub hasChanged() { !! $_[0]->{OP_changed} }
+
+=method setData @pairs
+Replace one or more values.  Each @pair is a field-name and the new value.
+Returned is the number of changes.
+
+When any of the values is different than the old value for that field, or
+when that field did not exist yet, then the C<changed> flag will be set.
+=cut
 
 sub setData(@)
 {	my $self = shift;
@@ -104,6 +134,10 @@ warn "CHANGED $field to " . ($value // 'undef');
 	$changes;
 }
 
+=method pushData $queue, @elements
+Add zero or more @elements to the $queue.
+=cut
+
 sub pushData($@)
 {	my ($self, $queue) = (shift, shift);
 	@_ or return;
@@ -111,6 +145,18 @@ sub pushData($@)
 	my $array = $self->_data->{$queue} ||= [];
 	push @$array, @_;
 	$self->changed;
+}
+
+=method summary
+Returns the summary data for this object.  When it is not available
+yet, it will get create.
+=cut
+
+sub summary()  { $_[0]->{OMO_sum} ||= +( $_[0]->_summary ) }
+
+sub _summary()
+{	my $self = shift;
+	(id => $self->id);
 }
 
 #------------------------
@@ -145,6 +191,38 @@ return;
 
 #------------------------
 =section Actions
+
+=method remove %options
+Remove this object.
 =cut
+
+sub remove(%)
+{	my ($self, %args) = @_;
+warn "Remove ".$self->element." ".$self->id;
+
+	# The actual removal of the object from the database
+	$self->_remove;
+}
+
+=method save %options
+Save this object to the database.  This may trigger the Summary to expire.
+
+=option  by_user BOOLEAN
+=default by_user C<false>
+When the object is saved by the user, then the new data is accepted which
+means "up to date".  Therefore, the schema version gets reset.
+=cut
+
+sub save(%)
+{	my ($self, %args) = @_;
+
+	$self->setData(schema => $self->schema)
+		if $args{by_user};
+
+warn "Save ".$self->element." ".$self->id;
+
+	# The actual saving of this object
+	$self->_save;
+}
 
 1;
