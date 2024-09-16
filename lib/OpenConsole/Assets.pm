@@ -60,17 +60,31 @@ sub assetFromDB($)
 	$class->fromDB($data);
 }
 
-=method for SET
+=method for SET, [$identity|$id|undef]
 We are always loading whole sets of assets at once, because we usually need them all and there are
 usually just a few.
+
+When an $identity is provided, then only the assets which match that will be returned.
 =cut
 
 sub _set($)
 {	my ($self, $set) = @_;
-	$self->{"OA_$set"} ||= +{ map +($_->id => $_),  $::app->assets->assetSearch($set, $self->ownerId) };
+	$self->{"OA_$set"} ||= +{ map +($_->id => $_),  $::app->assets->assetForOwner($set, $self->owner) };
 }
 
-sub for($) { my $set = $_[0]->_set($_[1]); sort { $a->sort cmp $b->sort } values %$set }
+sub for($;$)
+{	my $self = shift;
+	my $set  = $self->_set(shift);
+	return sort { $a->sort cmp $b->sort } values %$set
+		unless @_;
+
+	my $idid = shift || 'undef';
+	$idid    = $idid->id if blessed $idid;
+
+	sort { $a->sort cmp $b->sort }
+		grep +($_->identityId || 'undef') eq $idid,
+			values %$set;
+}
 
 sub asset($$)
 {	my ($self, $set, $asset_id) = @_;

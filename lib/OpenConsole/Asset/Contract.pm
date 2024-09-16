@@ -26,6 +26,11 @@ sub create($%)
 	$self;
 }
 
+sub _summary(%)
+{	my $self = shift;
+	$self->SUPER::_summary(@_);
+}
+
 #-------------
 =section Attributes
 =cut

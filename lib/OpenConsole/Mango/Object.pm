@@ -147,12 +147,12 @@ sub pushData($@)
 	$self->changed;
 }
 
-=method summary
+=method summary %options
 Returns the summary data for this object.  When it is not available
 yet, it will get create.
 =cut
 
-sub summary()  { $_[0]->{OMO_sum} ||= +( $_[0]->_summary ) }
+sub summary(%)  { $_[0]->{OMO_sum} ||= +{ $_[0]->_summary } }
 
 sub _summary()
 {	my $self = shift;

@@ -39,6 +39,9 @@ my @bool = qw(
 my @tokens = qw(
 	new_token
 	reseed_tokens
+	token_infix
+	token_set
+	token_class
 	in_token_class
 	is_valid_token
 );
@@ -136,23 +139,27 @@ generation of dupplicates, because that chance is uncredably small.
 
 The unique part is preceeded by a code for the Open Console server instance, and a prefix
 which indicate its application.  The latter mainly for debugging purposes.
+=cut
 
-Token prefixes:
-
-   A = Account
-   C = Contract
-   G = Group identity
-   H = cHallenge
-   I = personal Identity
-   M = send eMail
-   N = iNvite email
-   P = proof
-   S = Service
-   T = Temporary application session id
+my %token_infixes = (
+   A => [ account    => 'OpenConsole::Account'  ],
+   C => [ contract   => 'OpenConsole::Asset::Contract' ],
+   G => [ group      => 'OpenConsole::Group'    ],
+   H => [ challenge  => undef                   ],  # cHallenge
+   I => [ identity   => 'OpenConsole::Identity' ],
+   M => [ email      => undef                   ],  # send eMail
+   N => [ invite     => undef                   ],  # iNvite email
+   P => [ proof      => 'OpenConsole::Asset::Proof'   ],
+   S => [ service    => 'OpenConsole::Asset::Service' ],
+   T => [ appsession => undef                   ],  # Temporary application session id
+);
 
 =function new_token $prefix
 =function reseed_tokens
 =function is_valid_token $token
+=function token_infix $token
+=function token_set $token
+=function token_class $token
 =function in_token_class $char
 =cut
 
@@ -160,6 +167,9 @@ my $token_generator = Session::Token->new;
 sub new_token($)      { state $i = $::app->config->{instance}; "$i:${_[0]}:" . $token_generator->get }
 sub reseed_tokens()   { $token_generator = Session::Token->new }
 sub is_valid_token($) { $_[0] =~ m!^[a-z0-9]{5,8}\:[A-Z]\:[a-zA-Z0-9]{10,50}$! }
+sub token_infix($)    { $_[0] =~ m!\:(.)\:! ? $1 : undef }
+sub token_set($)      { my $i = token_infix $_[0]; $i ? $token_infixes{$i}[0] : undef }
+sub token_class($)    { my $i = token_infix $_[0]; $i ? $token_infixes{$i}[1] : undef }
 sub in_token_class($$){ $_[0] =~ m!\:(.)\:! && $1 eq $_[1] }
 
 #-----------

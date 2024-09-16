@@ -17,10 +17,16 @@ OpenConsole::Model::Assets - database for collected assets
 
 collections:
 =over 4
-=item * 'assets'
-All kinds of collectables are put in the same table: proofs, contracts, services, and
-more to come.  They are only accessible via their id and they owner (Account, Identity,
-Group).
+=item * 'proofs'
+All kinds of proofs are in one table, to give fast access to them.
+They are only accessible via their id and they owner (Account, Identity, Group).
+
+=item * 'contracts'
+The signed service contracts.  These are also searcheable by service.
+
+=item * 'services'
+Not a proof, but nothing special, hence currenly included in the proofs
+table.
 
 =back
 
@@ -32,43 +38,105 @@ Group).
 =cut
 
 has db         => undef;
-has assets     => sub { $_[0]->{OMB_assets} ||= $_[0]->db->collection('assets')};
+has proofs     => sub { $_[0]->{OMB_proof} ||= $_[0]->db->collection('proofs')};
+has contracts  => sub { $_[0]->{OMB_contr} ||= $_[0]->db->collection('contracts')};
 
 sub upgrade
 {	my $self = shift;
-	$self->assets->ensure_index({ id => 1 }, { unique => bson_true });
-	$self->assets->ensure_index({ ownerid => 1 }, { unique => bson_false });
-	$self;
+	$self->_upgrade_proofs
+		-> _upgrade_contracts;
 }
 
 #---------------------
-=section Assets
-
-All kinds of assets are moved to the same table.
+=section Generic
 =cut
 
-sub assetSearch($$)
-{	my ($self, $set, $ownerid) = @_;
-	my $assets = $self->assets->find({ownerid => $ownerid, set => $set})->all;
-	map OpenConsole::Assets->assetFromDB($_), @$assets;
+#XXX may get redundant when the summary is available
+sub assetForOwner($$)
+{	my ($self, $set, $owner) = @_;
+	$set eq 'contracts' ? $self->contractsForOwner($set, $owner) : $self->proofsForOwner($set, $owner);
 }
 
-sub saveAsset($)
+#---------------------
+=section Proofs
+All kinds of proof are moved to the same table.
+=cut
+
+sub _upgrade_proofs()
+{	my $self = shift;
+	$self->proofs->ensure_index({ id => 1 }, { unique => bson_true });
+	$self->proofs->ensure_index({ ownerid => 1 }, { unique => bson_false });
+	$self->proofs->ensure_index({ identid => 1 }, { unique => bson_false });
+	$self;
+}
+
+sub proofsForOwner($$)
+{	my ($self, $set, $owner) = @_;
+	my $proofs = $self->proofs->find({ownerid => $owner->id, set => $set})->all;
+	map OpenConsole::Assets->assetFromDB($_), @$proofs;
+}
+
+sub saveProof($)
 {	my ($self, $asset) = @_;
-	$self->assets->save($asset->toDB);
+	$self->proofs->save($asset->toDB);
 }
 
-sub asset($)
-{	my ($self, $assetid) = @_;
-	my $data = $self->assets->find_one({id => $assetid})
-		or return;
-
-	OpenConsole::Assets->assetFromDB($data);
+sub proof($)
+{	my ($self, $proofid) = @_;
+	my $data = $self->proofs->find_one({id => $proofid});
+	$data ? OpenConsole::Assets->assetFromDB($data) : undef;
 }
 
-sub deleteAsset($)
+sub deleteProof($)
+{	my ($self, $proof) = @_;
+	$self->proofs->remove({ id => $proof->id });
+}
+
+#---------------------
+=section Contracts
+The Service use contracts.
+=cut
+
+sub _upgrade_contracts()
+{	my $self = shift;
+	$self->contracts->ensure_index({ id => 1 }, { unique => bson_true });
+	$self->contracts->ensure_index({ ownerid => 1 }, { unique => bson_false });
+	$self->contracts->ensure_index({ identid => 1 }, { unique => bson_false });
+	$self->contracts->ensure_index({ serviceid => 1 }, { unique => bson_false });
+	$self;
+}
+
+sub contractsForOwner($$)
+{	my ($self, $set, $owner) = @_;
+	my $contracts = $self->contracts->find({ownerid => $owner->id, set => $set})->all;
+	map OpenConsole::Assets->assetFromDB($_), @$contracts;
+}
+
+sub saveContract($)
 {	my ($self, $asset) = @_;
-	$self->assets->remove({ id => $asset->id });
+	$self->contract->save($asset->toDB);
 }
+
+sub contract($)
+{	my ($self, $contractid) = @_;
+	my $data = $self->contracts->find_one({id => $contractid});
+	$data ? OpenConsole::Assets->assetFromDB($data) : undef;
+}
+
+sub deleteContract($)
+{	my ($self, $contract) = @_;
+	$self->contracts->remove({ id => $contract->id });
+}
+
+#---------------------
+=section Services
+Hidden in the proofs table.
+=cut
+
+*serviceSearch = \&proofSearch;
+*saveService   = \&saveProof;
+*service       = \&proof;
+*deleteService = \&deleteProof;
+
 
 1;

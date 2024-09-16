@@ -11,6 +11,7 @@ version 0.02:
 	- simplify use of schema (object version)
 	- promote unique tokens to replace database id
 	- uniform load/remove/save
+	- identity ownership only as sub-set of Account
 
 version 0.01: Wed Sep 09 09:21:50 PM CEST 2024
 	- Initial

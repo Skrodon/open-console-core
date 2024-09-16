@@ -9,7 +9,7 @@ use Log::Report 'open-console-core';
 use Scalar::Util  qw(blessed);
 use DateTime      ();
 
-use OpenConsole::Util  qw(bson2datetime new_token);
+use OpenConsole::Util  qw(bson2datetime new_token token_set);
 
 =chapter NAME
 OpenConsole::Asset - base class for any kind of collectables
@@ -46,13 +46,30 @@ sub fromDB($)
 
 #-------------
 =section Attributes
+
+=method ownerClass
+The Perl class implementation for the owner type.  This can be either
+M<OpenConsole::Account> or M<OpenConsole::Group>.
+
+=method ownerId
+The Id of the owner of this Asset, either an Account or a Group identifier.
+The M<ownerClass()> tells you which kind, if that's important (usually not).
+
+=method identityId
+When the owner is an Account, then this Id will tell you whether it is
+managed by a personal Identity of that user.
 =cut
 
-sub ownerClass() { $_[0]->_data->{ownerclass} }
 sub ownerId()    { $_[0]->_data->{ownerid} }
+sub identityId() { $_[0]->_data->{identid} }
 
 #-------------
 =section Maintainance
+
+=method hasExpired
+Whether this Asset is still useable, or got invalidated because of time
+restrictions.  The Asset form needs to be revisited to get revived again.
+Expired assets may be removed from the database, after some time.
 =cut
 
 sub hasExpired()
@@ -62,6 +79,11 @@ sub hasExpired()
 	$self->{OP_dead} = defined $exp ? $exp < DateTime->now : 0;
 }
 
+=method expires
+Returns the M<DateTime>-object which represents when this Asster will
+retire.  Returns C<undef> when no expiration is set.
+=cut
+
 sub expires()
 {	my $self = shift;
 	return $self->{OP_exp} if exists $self->{OP_exp};
@@ -70,47 +92,51 @@ sub expires()
 	$self->{OP_exp} = $exp ? bson2datetime($exp, $self->timezone) : undef;
 }
 
+=method owner
+Returns the owner of this Asset, either an Account or a Group.
+
+=method isOwnedByMe
+Returns whether this Asset is owned by the current Account.
+
+=method isOwnedByGroup ($group|$groupid)
+Check whether a certain group owns this asset.
+=cut
+
 sub owner($)
 {	my ($self, $account) = @_;
-	return $self->{OP_owner} if $self->{OP_owner};
-
-	my $class = $self->ownerClass;
-	if($class->isOwnedByMe)
-	{	$account->id eq $self->ownerId
-			or error __x"Account does not own the proof anymore.";
-		return $self->{OP_owner} = $account;
-	}
-
-	if($class->ownerClass->isa('OpenConsole::Identity'))
-	{	my $identity = $account->identity($self->ownerId)
-			or error __x"Missing identity.";
-		return $self->{OP_owner} = $identity;
-	}
-
-	if($class->ownerClass->isa('OpenConsole::Group'))
-	{	my $group = $account->group($self->ownerId)
-			or error __x"Not member of the owner group anymore.";
-		return $self->{OP_owner} = $group;
-	}
-
-	panic "Unknown owner type $class";
+	$self->{OP_owner} ||= $self->isOwnedByMe ? $account : $account->group($self->ownerId);
 }
 
-sub isOwnedByMe()     { $_[0]->ownerClass->isa('OpenConsole::Account') }
-sub isOwnedByGroup($) { $_[0]->ownerId eq $_[1]->id }
+sub isOwnedByMe()     { token_set($_[0]->ownerId) eq 'account' }
+sub isOwnedByGroup($) { my $id = blessed $_[1] ? $_[1]->id : $_[1]; $_[0]->ownerId eq $id }
 
-# The identity which is related to this proof.  This may change by external
-# factors.
+=method identity $account
+The identity which is related to this asset.  This may change by external
+factors.
+=cut
 
 sub identity($)
 {	my ($self, $account) = @_;
 	$self->isOwnedByMe ? $account->preferredIdentity : $self->owner->memberIdentityOf($account);
 }
 
+=method changeOwner $account, ($who|$whoid)
+Change $who is the owner of this asset.  When the new owner is an
+identity, than it will be assigned to the $account with a note about the
+identity.  When the new owner is a group, then this has big implications
+for every member of the group.
+=cut
+
 sub changeOwner($$)
-{	my ($self, $account, $ownerid) = @_;
-	$self->setData(ownerid => $ownerid);
+{	my ($self, $account, $who) = @_;
+	my $id = blessed $who ? $who->id : $who;
+
+	my ($ownerid, $identid) = token_set($id) eq 'identity' ? ($account->id, $id) : ($id, undef);
+	$self->setData(ownerid => $ownerid, identid => $identid);
+warn "Owner changed to $ownerid, ", $identid ? "identity $identid" : "";
+
 	delete $self->{OP_owner};
+	$self;
 }
 
 #-------------
@@ -133,16 +159,21 @@ sub save(%)
 
 	if($args{by_user})
     {	$self->setData(schema => $self->schema);
-		$self->log('user upgraded asset structure');
+		$self->log('User upgraded asset structure');
 	}
 
-    $::app->asset->saveAsset($self);
+warn "Saving asset ".$self->id;
+	$self->_save($self);
 }
 
 =method delete
 Flag this proof for deletion.
 =cut
 
-sub delete() { $::app->assets->deleteAsset($_[0]) }
+sub delete()
+{	my $self = shift;
+warn "Removing asset ".$self->id;
+	$self->_remove($self);
+}
 
 1;

@@ -36,6 +36,16 @@ sub create($%)
 	$self;
 }
 
+sub _summary(%)
+{	my $self = shift;
+
+	  (	$self->SUPER::_summary(@_),
+		name     => $self->name,
+		fullname => $self->fullname,
+		members  => $self->members,
+	  );
+}
+
 #-------------
 =section Attributes
 =cut
@@ -173,6 +183,7 @@ sub changeIdentity($$)
 	{	my $had = $memids{$identity->id} or next;
 		$had->{identid} = $identid;
 	}
+
 	1;
 }
 

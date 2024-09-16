@@ -43,6 +43,13 @@ sub create($%)
 	$class->SUPER::create(\%insert, %args);
 }
 
+sub _summary(%)
+{	my $self = shift;
+	 +(	$self->SUPER::_summary(@_),
+		role   => $self->role,
+	  );
+}
+
 #-------------
 =section Attributes
 =cut
@@ -68,12 +75,6 @@ sub phone()      { $_[0]->_data->{phone} }
 sub link()       { '/dashboard/identity/' . $_[0]->id }
 
 sub nameInGroup() { $_[0]->fullname || $_[0]->nickname || $_[0]->role }
-
-#-------------
-=section Assets
-=cut
-
-sub assets() { $_[0]->{OI_assets} ||= OpenConsole::Assets->new(owner => $_[0]) }
 
 #-------------
 =section Actions
