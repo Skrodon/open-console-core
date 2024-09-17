@@ -53,10 +53,12 @@ sub query()
 	$self->{OSA_query};
 }
 
-=method about
+=method about $label
 Returns the crucial identifier for this call: where are we speaking
 about.  Sometimes there are multiple identifiers passed, but the one
 returned here is the first object to load.
+
+The value may come from the routing path.
 =cut
 
 sub about($)
@@ -100,7 +102,7 @@ Take the value of a required calling parameter.
 
 sub requiredParam($)
 {	my ($self, $param) = @_;
-	my $p = val_line $self->optionalParam($param);
+	my $p = $self->optionalParam($param);
 
 	unless(defined $p && length $p)
 	{	$self->addError($param => __x"Required parameter missing.");
