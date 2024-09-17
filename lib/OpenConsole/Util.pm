@@ -15,6 +15,7 @@ use Time::HiRes    ();
 use DateTime       ();
 use JSON::PP       ();
 use File::Slurper  qw/read_lines/;
+use Crypt::PBKDF2  ();
 
 my @is_valid = qw(
 	is_valid_date
@@ -53,6 +54,8 @@ our @EXPORT_OK = (@is_valid, @validators, @bool, @tokens, qw(
 	get_page
 	user_agent
 	domain_suffix
+	encrypt_secret
+	verify_secret
 ));
 
 our %EXPORT_TAGS = (
@@ -267,6 +270,31 @@ sub domain_suffix($)
 	else                    { $host   = $first }
 
 	($host, $domain, $suffix);
+}
+
+#--------------
+=section secrets
+
+=function encrypt_secret $secret
+Hide a shared secret token (like a password) in a strong hash.
+=cut
+
+my $crypt = Crypt::PBKDF2->new;
+
+sub encrypt_secret($)
+{	my $secret = shift;
+	 +{	encrypted => $crypt->generate($secret),
+		algorithm => 'PBKDF2',
+	  };
+}
+
+=function verify_secret $encrypted, $secret
+The $encrypted structure was produced by M<encrypt_secret()>.
+=cut
+
+sub verify_secret($$)
+{	my ($encr, $secret) = @_;
+	$crypt->validate($encr->{encrypted}, $secret);
 }
 
 1;

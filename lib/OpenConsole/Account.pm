@@ -9,13 +9,10 @@ use Log::Report 'open-console-core';
 use Mango::BSON::Time ();
 use DateTime          ();
 use DateTime::Format::Mail ();
-use Crypt::PBKDF2     ();
 
-use OpenConsole::Util     qw(new_token);
+use OpenConsole::Util     qw(new_token verify_secret encrypt_secret);
 use OpenConsole::Identity ();
 use OpenConsole::Assets   ();
-
-my $crypt = Crypt::PBKDF2->new;
 
 =chapter NAME
 OpenConsole::Account - a user's login
@@ -99,19 +96,14 @@ sub localTime($)
 =section Password handling
 =cut
 
-sub encryptedPassword { $_[0]->_data->{password}{encrypted} }
-
 sub correctPassword($)
 {	my ($self, $password) = @_;
-	$crypt->validate($self->encryptedPassword, $password);
+	verify_secret $self->_data->{password}, $password;
 }
 
 sub changePassword($)
 {	my ($self, $password) = @_;
-	$self->_data->{password} = +{
-		encrypted => $crypt->generate($password),
-		algorithm => 'PBKDF2',
-	};
+	$self->_data->{password} = encrypt_secret $password;
 	$self->log("changed password");
 	$self;
 }
