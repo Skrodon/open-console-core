@@ -6,17 +6,16 @@ use Mojo::Base 'Exporter';
 
 use Log::Report    'open-console-core';
 
+use Crypt::PBKDF2  ();
 use DateTime       ();
 use DateTime::Format::Duration::ISO8601 ();
 use Email::Valid   ();
+use File::Slurper  qw/read_lines/;
+use JSON::PP       ();
 use List::Util     qw(first);
 use LWP::UserAgent ();
 use Session::Token ();
 use Time::HiRes    ();
-use DateTime       ();
-use JSON::PP       ();
-use File::Slurper  qw/read_lines/;
-use Crypt::PBKDF2  ();
 
 my @is_valid = qw(
 	is_valid_date
@@ -48,7 +47,14 @@ my @tokens = qw(
 	is_valid_token
 );
 
-our @EXPORT_OK = (@is_valid, @validators, @bool, @tokens, qw(
+my @time = qw(
+	bson2datetime
+	timestamp
+	duration
+	now
+);
+	
+our @EXPORT_OK = (@is_valid, @validators, @bool, @tokens, @time, qw(
 	flat
 	bson2datetime
 	timestamp
@@ -64,6 +70,7 @@ our %EXPORT_TAGS = (
 	validate => [ @is_valid, @validators ],
 	bool     => \@bool,
 	tokens   => \@tokens,
+	time     => \@time,
 );
 
 =chapter NAME
@@ -145,6 +152,12 @@ Returns C<undef> on failure.
 
 my $dur = DateTime::Format::Duration::ISO8601->new;
 sub duration($) { $dur->parse_duration($_[0]) }
+
+=function now
+Returns the current time in UTC as M<DateTime> object.
+=cut
+
+sub now() { DateTime->now(timezone => 'Z') }
 
 #-----------
 =section Tokens

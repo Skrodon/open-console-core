@@ -15,6 +15,7 @@ version 0.02:
 	- identity ownership only as sub-set of Account
 	- encryption of secrets into ::Util
 	- add ::Util::duration()
+	- add ::Util::now()
 
 version 0.01: Wed Sep 09 09:21:50 PM CEST 2024
 	- Initial

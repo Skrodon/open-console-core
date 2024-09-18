@@ -7,9 +7,8 @@ use Mojo::Base 'OpenConsole::Mango::Object';
 use Log::Report 'open-console-core';
 
 use Scalar::Util  qw(blessed);
-use DateTime      ();
 
-use OpenConsole::Util  qw(bson2datetime new_token token_set);
+use OpenConsole::Util  qw(bson2datetime new_token token_set now);
 
 =chapter NAME
 OpenConsole::Asset - base class for any kind of collectables
@@ -63,6 +62,14 @@ managed by a personal Identity of that user.
 sub ownerId()    { $_[0]->_data->{ownerid} }
 sub identityId() { $_[0]->_data->{identid} }
 
+=method status
+=cut
+
+sub status()     { $_[0]->_data->{status} }
+
+#XXX to be removed
+sub score() { 100 }
+
 #-------------
 =section Maintainance
 
@@ -76,7 +83,7 @@ sub hasExpired()
 {	my $self = shift;
 	return $self->{OP_dead} if exists $self->{OP_dead};
 	my $exp  = $self->expires;
-	$self->{OP_dead} = defined $exp ? $exp < DateTime->now : 0;
+	$self->{OP_dead} = defined $exp ? $exp < now : 0;
 }
 
 =method expires
