@@ -8,7 +8,7 @@ use Log::Report 'open-console-core';
 
 use Scalar::Util  qw(blessed);
 
-use OpenConsole::Util  qw(bson2datetime new_token token_set now);
+use OpenConsole::Util  qw(new_token token_set now);
 
 =chapter NAME
 OpenConsole::Asset - base class for any kind of collectables
@@ -33,16 +33,6 @@ sub create($%)
 	$self;
 }
 
-sub fromDB($)
-{	my ($class, $data) = @_;
-	my $self = $class->SUPER::fromDB($data);
-
-	$self->setData(status => 'expired')
-		if $self->status ne 'expired' && $self->hasExpired;
-
-	$self;
-}
-
 #-------------
 =section Attributes
 
@@ -62,42 +52,11 @@ managed by a personal Identity of that user.
 sub ownerId()    { $_[0]->_data->{ownerid} }
 sub identityId() { $_[0]->_data->{identid} }
 
-=method status
-=cut
-
-sub status()     { $_[0]->_data->{status} }
-
 #XXX to be removed
 sub score() { 100 }
 
 #-------------
 =section Maintainance
-
-=method hasExpired
-Whether this Asset is still useable, or got invalidated because of time
-restrictions.  The Asset form needs to be revisited to get revived again.
-Expired assets may be removed from the database, after some time.
-=cut
-
-sub hasExpired()
-{	my $self = shift;
-	return $self->{OP_dead} if exists $self->{OP_dead};
-	my $exp  = $self->expires;
-	$self->{OP_dead} = defined $exp ? $exp < now : 0;
-}
-
-=method expires
-Returns the M<DateTime>-object which represents when this Asster will
-retire.  Returns C<undef> when no expiration is set.
-=cut
-
-sub expires()
-{	my $self = shift;
-	return $self->{OP_exp} if exists $self->{OP_exp};
-
-	my $exp = $self->_data->{expires};
-	$self->{OP_exp} = $exp ? bson2datetime($exp, $self->timezone) : undef;
-}
 
 =method owner
 Returns the owner of this Asset, either an Account or a Group.

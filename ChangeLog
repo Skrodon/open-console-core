@@ -16,6 +16,7 @@ version 0.02:
 	- encryption of secrets into ::Util
 	- add ::Util::duration()
 	- add ::Util::now()
+	- move expire and status to any object, from assets only
 
 version 0.01: Wed Sep 09 09:21:50 PM CEST 2024
 	- Initial

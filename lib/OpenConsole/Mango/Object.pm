@@ -6,6 +6,8 @@ use Mojo::Base -base;
 
 use Log::Report 'open-console-core';
 
+use OpenConsole::Util   qw(:time);
+
 =chapter NAME
 OpenConsole::Mango::Object - base for any database storable object
 
@@ -19,7 +21,12 @@ $Data::Dumper::Indent = 1;
 
 sub fromDB($)
 {	my ($class, $data) = @_;
-	$class->new(_data => $data);
+	my $self = $class->new(_data => $data);
+
+	$self->setData(status => 'expired')
+		if $self->status ne 'expired' && $self->hasExpired;
+
+	$self;
 }
 
 sub fromSummary($)
@@ -31,7 +38,7 @@ sub create($%)
 {	my ($class, $insert, %args) = @_;
 	$insert->{id}      ||= 'new';
 	$insert->{schema}  ||= $class->schema;
-	$insert->{created}   = Mango::BSON::Time->new;
+	$insert->{created}   = Mango::BSON::Time->new;  #XXX now
 	$class->new(_data => $insert, %args);
 }
 
@@ -64,6 +71,9 @@ sub set()     { panic }
 sub element() { panic }
 sub schema()  { '' }    # some objects will not be saved
 
+#-------------
+=section Maintainance
+
 =method sort
 The key to be used when sorting this kind of objects.
 
@@ -78,6 +88,36 @@ sub sort()     { $_[0]->id }
 sub isNew()    { $_[0]->id eq 'new' }
 sub elemLink() { '/dashboard/' . $_[0]->element . '/' . $_[0]->id }
 
+=method hasExpired
+Whether this Asset is still useable, or got invalidated because of time
+restrictions.  The Asset form needs to be revisited to get revived again.
+Expired assets may be removed from the database, after some time.
+=cut
+
+sub hasExpired()
+{	my $self = shift;
+	return $self->{OMO_dead} if exists $self->{OMO_dead};
+	my $exp  = $self->expires;
+	$self->{OMO_dead} = defined $exp ? $exp < now : 0;
+}
+
+=method expires
+Returns the M<DateTime>-object which represents when this Asster will
+retire.  Returns C<undef> when no expiration is set.
+=cut
+
+sub expires()
+{	my $self = shift;
+	return $self->{OMO_exp} if exists $self->{OMO_exp};
+
+	my $exp = $self->_data->{expires};
+	$self->{OMO_exp} = $exp ? bson2datetime($exp, $self->timezone) : undef;
+}
+
+=method status
+=cut
+
+sub status()     { $_[0]->_data->{status} }
 
 #------------------------
 =section Data
@@ -103,8 +143,8 @@ Flags that the data has been changed.
 Checks whether the data is flagged to have changed.
 =cut
 
-sub changed()    { ++$_[0]->{OP_changed} }
-sub hasChanged() { !! $_[0]->{OP_changed} }
+sub changed()    { ++$_[0]->{OMO_changed} }
+sub hasChanged() { !! $_[0]->{OMO_changed} }
 
 =method setData @pairs
 Replace one or more values.  Each @pair is a field-name and the new value.
