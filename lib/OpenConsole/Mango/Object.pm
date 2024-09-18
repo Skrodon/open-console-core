@@ -22,6 +22,8 @@ $Data::Dumper::Indent = 1;
 sub fromDB($)
 {	my ($class, $data) = @_;
 	my $self = $class->new(_data => $data);
+use Data::Dumper;
+warn "MO FromDB:", Dumper $data;
 
 	$self->setData(status => 'expired')
 		if $self->status ne 'expired' && $self->hasExpired;
@@ -39,6 +41,7 @@ sub create($%)
 	$insert->{id}      ||= 'new';
 	$insert->{schema}  ||= $class->schema;
 	$insert->{created}   = Mango::BSON::Time->new;  #XXX now
+	$insert->{status}    = 'new';
 	$class->new(_data => $insert, %args);
 }
 
@@ -97,6 +100,7 @@ Expired assets may be removed from the database, after some time.
 sub hasExpired()
 {	my $self = shift;
 	return $self->{OMO_dead} if exists $self->{OMO_dead};
+return 0;
 	my $exp  = $self->expires;
 	$self->{OMO_dead} = defined $exp ? $exp < now : 0;
 }
@@ -124,11 +128,7 @@ sub status()     { $_[0]->_data->{status} }
 =cut
 
 # hidden for anything else than the core data objects.
-sub _data() { $_[0]->{_data} ||= $_[0]->_loadData }
-
-sub _loadData()
-{
-}
+has _data => sub { +{} };
 
 =method toDB
 Convert the crucial object data into a structure to be saved in the database.

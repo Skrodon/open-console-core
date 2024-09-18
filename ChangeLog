@@ -1,6 +1,7 @@
 ==== version history of open-console-core
 
 version 0.02:
+
 	Fixes:
 	- requiredParams not always lines, may be text or other.
 

@@ -22,8 +22,10 @@ service provider.  The service provider is a group identity.
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
-	my $self = $class->SUPER::create($insert, %args);
-	$self;
+	if(my $service = delete $insert->{service})
+	{	$insert->{serviceid} = $service->id;
+	}
+	$class->SUPER::create($insert, %args);
 }
 
 sub _summary(%)
@@ -35,12 +37,13 @@ sub _summary(%)
 =section Attributes
 =cut
 
-sub schema() { '20240224' }
+sub schema() { '20240917' }
 sub set()    { 'contracts' }
 sub element(){ 'contract'  }
 
-sub sort()   { lc $_[0]->_data->{name} }
-sub name()   { $_[0]->_data->{name} }
+sub sort()      { lc $_[0]->_data->{name} }
+sub name()      { $_[0]->_data->{name} }
+sub serviceId() { $_[0]->_data->{serviceid} }
 
 #-------------
 =section Action

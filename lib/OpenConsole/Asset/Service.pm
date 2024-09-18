@@ -7,7 +7,7 @@ use Mojo::Base 'OpenConsole::Asset';
 use Log::Report 'open-console-core';
 
 use Encode       qw(decode);
-use OpenConsole::Util qw(new_token);
+use OpenConsole::Util qw(new_token verify_secret encrypt_secret);
 
 =chapter NAME
 OpenConsole::Asset::Service - describes a Service
@@ -42,8 +42,11 @@ sub schema() { '20240912' }
 sub set()    { 'services' }
 sub element(){ 'service'  }
 
-sub sort()   { lc $_[0]->_data->{name} }
-sub name()   { $_[0]->_data->{name} }
+sub sort()     { $_[0]->_data->{name} }
+sub name()     { $_[0]->_data->{name} }
+sub endpoint() { $_[0]->_data->{endpoint} }
+sub secret()   { $_[0]->_data->{secret} }
+sub description() { $_[0]->_data->{description} }
 
 #-------------
 =section Action
@@ -57,6 +60,17 @@ sub save(%)
 {   my ($self, %args) = @_;
 	$self->setData(id => new_token 'S') if $self->isNew;
 	$self->SUPER::save(%args);
+}
+
+sub correctSecret($)
+{   my ($self, $secret) = @_;
+    verify_secret $self->_data->{secret}, $secret;
+}
+
+sub changeSecret($)
+{	my ($self, $secret) = @_;
+	$self->_data->{secret} = encrypt_secret $secret;
+    $self;
 }
 
 1;

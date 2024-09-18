@@ -14,7 +14,7 @@ WriteMakefile
 	'Data::Dumper'		=> 0,
 	'DateTime'			=> 1.50,
 	'DateTime::Format::Mail'   => 0,
-	'DateTime::Format::Duration::ISO8601' => 0.008.
+	'DateTime::Format::Duration::ISO8601' => 0.008,
 	'Devel::GlobalDestruction' => 0,
 	'Email::Valid'		=> 0,
 	'Encode'			=> 0,

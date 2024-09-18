@@ -87,7 +87,7 @@ sub proof($)
 	$data ? OpenConsole::Assets->assetFromDB($data) : undef;
 }
 
-sub deleteProof($)
+sub removeProof($)
 {	my ($self, $proof) = @_;
 	$self->proofs->remove({ id => $proof->id });
 }
@@ -112,6 +112,15 @@ sub contractsForOwner($$)
 	map OpenConsole::Assets->assetFromDB($_), @$contracts;
 }
 
+#XXX Once we have the summary, we do not need to search
+sub contractsForService($$)
+{	my ($self, $owner, $service) = @_;
+	my $sid = blessed $service ? $service->id : $service;
+
+	my $contracts = $self->contracts->find({ownerid => $owner->id, serviceid => $sid })->all;
+	map OpenConsole::Assets->assetFromDB($_), @$contracts;
+}
+
 sub saveContract($)
 {	my ($self, $asset) = @_;
 	$self->contract->save($asset->toDB);
@@ -123,7 +132,7 @@ sub contract($)
 	$data ? OpenConsole::Assets->assetFromDB($data) : undef;
 }
 
-sub deleteContract($)
+sub removeContract($)
 {	my ($self, $contract) = @_;
 	$self->contracts->remove({ id => $contract->id });
 }
@@ -133,10 +142,28 @@ sub deleteContract($)
 Hidden in the proofs table.
 =cut
 
-*serviceSearch = \&proofSearch;
-*saveService   = \&saveProof;
-*service       = \&proof;
-*deleteService = \&deleteProof;
+sub servicesForOwner($$)
+{	my ($self, $set, $owner) = @_;
+	my $services = $self->proofs->find({ownerid => $owner->id, set => $set})->all;
+	map OpenConsole::Assets->assetFromDB($_), @$services;
+}
+
+sub saveService($)
+{	my ($self, $asset) = @_;
+	$self->proofs->save($asset->toDB);
+}
+
+sub service($)
+{	my ($self, $id) = @_;
+
+	my $data = $self->proofs->find_one({id => $id});
+	$data ? OpenConsole::Assets->assetFromDB($data) : undef;
+}
+
+sub removeService($)
+{	my ($self, $service) = @_;
+	$self->proofs->remove({ id => $service->id });
+}
 
 
 1;

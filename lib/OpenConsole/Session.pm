@@ -37,6 +37,7 @@ response, hence objects will not survive.
 sub create(;$%)
 {	my $class = shift;
 	my $data  = shift // { };
+ref $data eq 'HASH' or panic;
 	$data->{$_} ||= [ ] for @messages;
 	$class->SUPER::create($data, @_);
 }

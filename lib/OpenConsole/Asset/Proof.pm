@@ -37,9 +37,6 @@ sub _summary(%)
 
 #-------------
 =section Attributes
-=cut
-
-sub status()     { $_[0]->_data->{status} }
 
 =method score %options
 Rate the quality of the proof.  The higher the value, the better the

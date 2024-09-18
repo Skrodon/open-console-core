@@ -104,7 +104,7 @@ sub requiredParam($)
 {	my ($self, $param) = @_;
 	my $p = $self->optionalParam($param);
 
-	unless(defined $p && length $p)
+	unless(defined $p && $p =~ /\S/)
 	{	$self->addError($param => __x"Required parameter missing.");
 		return 'missing';
 	}
