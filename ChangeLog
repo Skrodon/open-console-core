@@ -14,6 +14,7 @@ version 0.02:
 	- uniform load/remove/save
 	- identity ownership only as sub-set of Account
 	- encryption of secrets into ::Util
+	- add ::Util::duration()
 
 version 0.01: Wed Sep 09 09:21:50 PM CEST 2024
 	- Initial

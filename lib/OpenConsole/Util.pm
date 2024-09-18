@@ -7,6 +7,7 @@ use Mojo::Base 'Exporter';
 use Log::Report    'open-console-core';
 
 use DateTime       ();
+use DateTime::Format::Duration::ISO8601 ();
 use Email::Valid   ();
 use List::Util     qw(first);
 use LWP::UserAgent ();
@@ -51,6 +52,7 @@ our @EXPORT_OK = (@is_valid, @validators, @bool, @tokens, qw(
 	flat
 	bson2datetime
 	timestamp
+	duration
 	get_page
 	user_agent
 	domain_suffix
@@ -91,7 +93,7 @@ sub val_line($)
 sub val_text($)
 {	my $text = shift;
 	defined $text && $text =~ /\S/ or return undef;
-	$text =~ s/[ \t]{2,}/ /gr =~ s/ $//gmr =~ s/\n{2,}/\n/gr;
+	$text =~ s/[ \t]+/ /gr =~ s/ $//gmr =~ s/\n{2,}/\n/gr;
 }
 
 sub is_valid_email($) { Email::Valid->address($_[0]) }
@@ -115,7 +117,8 @@ sub is_valid_zulu($)
 }
 
 #----------
-=section MongoDB
+=section Time
+
 =function bson2datetime $timezone
 Represent a timestamp in the MongoDB specific time format (M<Mango::BSON::Time>), in
 human readible form.
@@ -134,6 +137,14 @@ sub timestamp(;$)
 	$stamp->set_time_zone('Z');
 	$stamp->iso8601 . 'Z';
 }
+
+=function duration $iso8601
+Parse a iso8601 duration string (like C<P2W1DT15H>) into a M<DateTime::Duration> object.
+Returns C<undef> on failure.
+=cut
+
+my $dur = DateTime::Format::Duration::ISO8601->new;
+sub duration($) { $dur->parse_duration($_[0]) }
 
 #-----------
 =section Tokens
