@@ -1,6 +1,8 @@
 ==== version history of open-console-core
 
 version 0.03:
+	Fixes:
+	- too much in MANIFEST
 
 version 0.02: Wed 18 Sep 14:56:19 CEST 2024
 
