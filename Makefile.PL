@@ -7,7 +7,7 @@ use 5.016;
 
 WriteMakefile
  ( NAME     => 'Open-Console-Core'
- , VERSION  => '0.01'
+ , VERSION  => '0.02'
 
  , PREREQ_PM    => { 
 	'Crypt::PBKDF2'		=> 0,

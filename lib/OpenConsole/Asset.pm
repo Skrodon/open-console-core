@@ -106,7 +106,7 @@ warn "Owner changed to $ownerid, ", $identid ? "identity $identid" : "";
 }
 
 #-------------
-=section Action
+=section Actions
 
 =method save %options
 Save this proof to the database.  When it does not have an ID yet, then

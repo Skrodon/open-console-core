@@ -1,4 +1,8 @@
 ChangeLog
+LICENSES/EUPL-1.2-EN.txt
+MANIFEST
+Makefile.PL
+README.md
 lib/OpenConsole.pm
 lib/OpenConsole/Account.pm
 lib/OpenConsole/Asset.pm
@@ -23,8 +27,4 @@ lib/OpenConsole/Session/Ajax.pm
 lib/OpenConsole/Session/Task.pm
 lib/OpenConsole/Summary.pm
 lib/OpenConsole/Util.pm
-LICENSES/EUPL-1.2-EN.txt
-Makefile.PL
-MANIFEST
-README.md
 t/10domain_suffix.t

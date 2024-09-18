@@ -24,8 +24,8 @@ other objects: session objects get serialized in the data-base or as HTTP
 response, hence objects will not survive.
 
 =over 4
-=item * M<OpenConsole::Session::REST> is used for non-interactive clients
-=item * M<OwnerConsole::Session::TaskResults> is used to communicate with Minion workers
+=item * C<OpenConsole::Session::REST> (todo) is used for non-interactive clients
+=item * M<OwnerConsole::Session::Task> is used to communicate with Minion workers
 =item * M<OwnerConsole::Session::Ajax> is used as reply to browser Ajax requests
 =back
 
