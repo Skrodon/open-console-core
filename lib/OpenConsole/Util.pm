@@ -56,9 +56,6 @@ my @time = qw(
 	
 our @EXPORT_OK = (@is_valid, @validators, @bool, @tokens, @time, qw(
 	flat
-	bson2datetime
-	timestamp
-	duration
 	get_page
 	user_agent
 	domain_suffix
@@ -136,12 +133,17 @@ sub bson2datetime($$)
 	$stamp ? DateTime->from_epoch(epoch => $stamp->to_epoch)->set_time_zone($tz) : undef;
 }
 
+=function now
+Returns the current time in UTC as M<DateTime> object.
+=cut
+
+sub now() { DateTime->now(time_zone => 'Z') }
+
 =function timestamp [$datetime]
 =cut
 
 sub timestamp(;$)
-{	my $stamp = shift || DateTime->now;
-	$stamp->set_time_zone('Z');
+{	my $stamp = @_ ? (shift->set_time_zone('Z')) : now();
 	$stamp->iso8601 . 'Z';
 }
 
@@ -150,14 +152,8 @@ Parse a iso8601 duration string (like C<P2W1DT15H>) into a M<DateTime::Duration>
 Returns C<undef> on failure.
 =cut
 
-my $dur = DateTime::Format::Duration::ISO8601->new;
+my $dur = DateTime::Format::Duration::ISO8601->new(on_error => sub {});
 sub duration($) { $dur->parse_duration($_[0]) }
-
-=function now
-Returns the current time in UTC as M<DateTime> object.
-=cut
-
-sub now() { DateTime->now(timezone => 'Z') }
 
 #-----------
 =section Tokens
