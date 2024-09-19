@@ -44,9 +44,20 @@ sub element(){ 'service'  }
 
 sub sort()     { $_[0]->_data->{name} }
 sub name()     { $_[0]->_data->{name} }
-sub endpoint() { $_[0]->_data->{endpoint} }
 sub secret()   { $_[0]->_data->{secret} }
+sub contact()  { $_[0]->_data->{contact} }
+sub support()  { $_[0]->_data->{support} }
+sub terms()    { $_[0]->_data->{terms} }
+sub license()  { $_[0]->_data->{license} }
 sub description() { $_[0]->_data->{description} }
+
+sub endpointWebsite() { $_[0]->_data->{endpoint_ws} }
+sub endpointPath()    { $_[0]->_data->{endpoint_path} }
+sub infoWebsite()     { $_[0]->_data->{info_ws} }
+sub infoPath()        { $_[0]->_data->{info_path} }
+sub needsAssets()     { $_[0]->_data->{needs_assets} }
+sub explainUser()     { $_[0]->_data->{explain_user} }
+sub explainGroup()    { $_[0]->_data->{explain_group} }
 
 #-------------
 =section Action

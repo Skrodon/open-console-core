@@ -53,6 +53,9 @@ sub _summary(%)
 sub schema()     { '20240112' }
 sub element()    { 'group' }
 sub set()        { 'groups' }
+sub isPerson()   { 0 }
+sub isIdentity() { 0 }
+sub isGroup()    { 1 }
 
 # Keep these attributes in sync with the OwnerConsole/Controller/Groups.pm
 # method submit_group()

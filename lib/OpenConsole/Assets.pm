@@ -60,7 +60,7 @@ sub assetFromDB($)
 	$class->fromDB($data);
 }
 
-=method for SET, [$identity|$id|undef]
+=method for $set, [$identity|$identityid|undef]
 We are always loading whole sets of assets at once, because we usually need them all and there are
 usually just a few.
 

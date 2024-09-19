@@ -55,6 +55,9 @@ sub fromDB($)
 sub schema()    { '20240102' }
 sub element()   { 'account' }
 sub set()       { 'accounts' }
+sub isPerson()  { 1 }
+sub isIdentity(){ 0 }
+sub isGroup()   { 0 }
 
 #### Keep these attributes in sync with OwnerConsole::Collector::Account::submit()
 
@@ -279,6 +282,51 @@ sub asset($$)
 	}
 
 	undef;
+}
+
+=method assetSearch $set, %options
+=option  min_score INTEGER
+=default min_score 0
+Only return elements from the $set which have a minimum score of at least this
+value.  With C<0>, even unproven entries are returned.
+
+=option  owner OBJECT
+=default owner C<undef>
+Only return the elements which are related to the Account, Identity, or Group
+specified.  The Identity and Group MUST be Account related.
+=cut
+
+sub assetSearch($%)
+{	my ($self, $set, %args) = @_;
+	my $score = delete $args{min_score} || 0;
+
+	my @list;
+	if(my $owner = delete $args{owner})
+	{	push @list,
+			$owner==$self      ? $self->assets->for($set, undef)
+		  :	$owner->isIdentity ? $self->assets->for($set, $owner)
+		  :	                     $owner->assets->for($set);
+	}
+	else
+	{	push @list,
+			$self->assets->for($set, undef),
+			(map $self->assets->for($set, $_), $self->identities),
+			(map $_->assets->for($set), $self->groups);
+	}
+
+	@list = grep $_->score >= $score, @list if $score;
+	@list;
+}
+
+=method findOwner $id
+Returns the Account, Identity, or Group object, within this account, which
+is represented by the $id.
+=cut
+
+sub findOwner($)
+{	my ($self, $id) = @_;
+	return $self if $id eq $self->id;
+	$self->identity($id) || $self->group($id);
 }
 
 #------------------
