@@ -40,8 +40,8 @@ sub create($%)
 {	my ($class, $insert, %args) = @_;
 	$insert->{id}      ||= 'new';
 	$insert->{schema}  ||= $class->schema;
-	$insert->{created}   = Mango::BSON::Time->new;  #XXX now
-	$insert->{status}    = 'new';
+	$insert->{status}  ||= 'new';
+	$insert->{created} ||= Mango::BSON::Time->new;  #XXX now
 	$class->new(_data => $insert, %args);
 }
 

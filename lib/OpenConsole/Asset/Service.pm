@@ -25,6 +25,7 @@ negotiate a "contract" of usage.
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
+	$insert->{status} ||= 'testing';
 	my $self = $class->SUPER::create($insert, %args);
 	$self;
 }
@@ -49,6 +50,9 @@ sub contact()  { $_[0]->_data->{contact} }
 sub support()  { $_[0]->_data->{support} }
 sub terms()    { $_[0]->_data->{terms} }
 sub license()  { $_[0]->_data->{license} }
+sub payments()  { $_[0]->_data->{payments} }
+sub groupOnly() { $_[0]->_data->{group_only} }
+sub licenseLink() { $_[0]->_data->{license_link} }
 sub description() { $_[0]->_data->{description} }
 
 sub endpointWebsite() { $_[0]->_data->{endpoint_ws} }
