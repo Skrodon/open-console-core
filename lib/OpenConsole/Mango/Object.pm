@@ -5,6 +5,7 @@ package OpenConsole::Mango::Object;
 use Mojo::Base -base;
 
 use Log::Report 'open-console-core';
+use Mojo::Util          qw(xml_escape);
 
 use OpenConsole::Util   qw(:time);
 
@@ -23,7 +24,7 @@ sub fromDB($)
 {	my ($class, $data) = @_;
 	my $self = $class->new(_data => $data);
 use Data::Dumper;
-warn "MO FromDB:", Dumper $data;
+warn "MO($class) FromDB:", Dumper $data;
 
 	$self->setData(status => 'expired')
 		if $self->status ne 'expired' && $self->hasExpired;
@@ -41,38 +42,54 @@ sub create($%)
 	$insert->{id}      ||= 'new';
 	$insert->{schema}  ||= $class->schema;
 	$insert->{status}  ||= 'new';
-	$insert->{created} ||= Mango::BSON::Time->new;  #XXX now
+	$insert->{created} ||= timestamp;
 	$class->new(_data => $insert, %args);
 }
 
 #------------------------
 =section Attributes
 
+=method ci_set
+The name of the C<set> where this object belongs to.  Usually then name of
+the M<element()> followed by a C<s>.
+
+=method ci_setName
+The display representation of the name of the set.
+
+=method ci_iconFA
+Which FontAwesome character is representing this set.
+
+=method ci_element
+The type of element this object presents.
+
+=method ci_elemName
+The display of a single element in this set.
+
+=method ci_schema
+The version of the current implementation
+=cut
+
+sub schema()  { '' }    # some objects will not be saved
+sub element() { panic }
+sub set()     { panic }
+sub setName() { panic }
+sub elemName(){ panic }
+sub iconFA()  { panic }
+
 =method id
 The unique identifier for this object.  It is even unique within the whole
 program and database.
 
+=method name
+
 =method created
 The moment of creation of the object.
-
-=method set
-The name of the C<set> where this object belongs to.  Usually then name of
-the M<element()> followed by a C<s>.
-
-=method element
-The type of element this object presents.
-
-=method schema
-The version of the current implementation
 =cut
 
 # Mongo: When an object has been created, its id is not in _id
 sub id()      { $_[0]->_data->{id} }
-
+sub name()    { $_[0]->_data->{name} }
 sub created() { my $c = $_[0]->_data->{created}; $c ? $c->to_datetime : undef }
-sub set()     { panic }
-sub element() { panic }
-sub schema()  { '' }    # some objects will not be saved
 
 #-------------
 =section Maintainance
@@ -87,7 +104,7 @@ Whether the object was already saved.
 Produce the (site absolute) URL which brings you to the object.
 =cut
 
-sub sort()     { $_[0]->id }
+sub sort()     { lc $_[0]->name }
 sub isNew()    { $_[0]->id eq 'new' }
 sub elemLink() { '/dashboard/' . $_[0]->element . '/' . $_[0]->id }
 
@@ -264,5 +281,11 @@ warn "Save ".$self->element." ".$self->id;
 	# The actual saving of this object
 	$self->_save;
 }
+
+#XXX!!! use the next three with <%== !!! (double =)
+sub icon()     { '<i class="' . $_[0]->iconFA . '" aria-hidden="true"></i>' }
+sub iconSet()  { $_[0]->icon . ' ' . xml_escape($_[0]->setName->toString) }
+sub iconElem() { $_[0]->icon . ' ' . xml_escape($_[0]->elemName->toString) }
+sub iconName() { $_[0]->icon . ' ' . xml_escape($_[0]->name) }
 
 1;

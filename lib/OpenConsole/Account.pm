@@ -9,6 +9,7 @@ use Log::Report 'open-console-core';
 use Mango::BSON::Time ();
 use DateTime          ();
 use DateTime::Format::Mail ();
+use Scalar::Util      qw(blessed);
 
 use OpenConsole::Util     qw(new_token verify_secret encrypt_secret);
 use OpenConsole::Identity ();
@@ -55,6 +56,11 @@ sub fromDB($)
 sub schema()    { '20240102' }
 sub element()   { 'account' }
 sub set()       { 'accounts' }
+sub elemName()  { __"Account" }
+sub setName()   { __"Accounts" }
+sub iconFA()    { 'fa-solid fa-user' }
+sub name()      { (__"Personal properties")->toString }
+
 sub isPerson()  { 1 }
 sub isIdentity(){ 0 }
 sub isGroup()   { 0 }
@@ -256,6 +262,28 @@ sub groups
 		$self->_data->{groups} = \@groupids;
 	}
 	@{$self->{OA_groups}};
+}
+
+=method groupsForId $identity|$idid
+Returns a LIST of groups where the $identity is member of.
+=cut
+
+sub _createGrById()
+{	my $self = shift;
+	my %t;
+	foreach my $group ($self->groups)
+	{	my $ident = $group->memberIdentityOf($self) or next;
+		push @{$t{$ident->id}}, $group;
+	}
+	\%t;
+}
+
+#XXX not used
+sub groupsFor($)
+{	my ($self, $identity) = @_;
+	my $id = blessed $identity ? $identity->id : $identity;
+	my $groups = ($self->{OA_grById} ||= $self->_createGrById)->{$id} || [];
+	@$groups;
 }
 
 #-------------

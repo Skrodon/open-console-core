@@ -11,6 +11,7 @@ use Mango::BSON ':bson';
 use OpenConsole::Account  ();
 use OpenConsole::Identity ();
 use OpenConsole::Group    ();
+use OpenConsole::Util     qw(token_set);
 
 =chapter NAME
 OpenConsole::Model::Users - database with important user data
@@ -36,6 +37,9 @@ has groups     => sub { $_[0]->{OMU_group}   ||= $_[0]->db->collection('groups')
 
 #---------------------
 =section UserDB configuration
+
+=method upgrade
+Bring the database tables to the newest configuration.
 =cut
 
 sub upgrade
@@ -59,6 +63,21 @@ sub upgrade
 	$self->groups->ensure_index({ userid  => 1 }, { unique => bson_false });
 	$self->groups->ensure_index({ identid => 1 }, { unique => bson_false });
 	$self;
+}
+
+=method getOwner $id
+The Owner can be a User, Identity, or Group.  We can see this from the $id.
+Returns the right object.
+=cut
+
+sub getOwner($)
+{	my ($self, $id) = @_;
+	my $set = token_set $id;
+
+	    $set eq 'account'  ? $self->account($id)
+      : $set eq 'identity' ? $self->identity($id)
+	  : $set eq 'group'    ? $self->group($id)
+	  :     panic $id;
 }
 
 #---------------------

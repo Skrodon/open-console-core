@@ -38,6 +38,8 @@ Manage a set of assets for an owner, which could be an Account, an
 
 has owner => sub { error "Requires owner" }, weak => 1;
 
+sub assetClass($) { $asset_class{$_[1]} }
+
 #------------------
 =section Ownership
 =cut

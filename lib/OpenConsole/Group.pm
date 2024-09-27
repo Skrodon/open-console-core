@@ -53,6 +53,10 @@ sub _summary(%)
 sub schema()     { '20240112' }
 sub element()    { 'group' }
 sub set()        { 'groups' }
+sub iconFA()     { 'fa-solid fa-people-group' }
+sub elemName()   { __"Group" }
+sub setName()    { __"Groups" }
+
 sub isPerson()   { 0 }
 sub isIdentity() { 0 }
 sub isGroup()    { 1 }

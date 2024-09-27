@@ -8,7 +8,9 @@ use Log::Report 'open-console-core';
 
 use Mango::BSON ':bson';
 
-use OpenConsole::Assets         ();
+use OpenConsole::Assets    ();
+
+use OpenConsole::Util      qw(token_set);
 
 =chapter NAME
 OpenConsole::Model::Assets - database for collected assets
@@ -55,6 +57,11 @@ sub upgrade
 sub assetForOwner($$)
 {	my ($self, $set, $owner) = @_;
 	$set eq 'contracts' ? $self->contractsForOwner($set, $owner) : $self->proofsForOwner($set, $owner);
+}
+
+sub asset($)
+{	my ($self, $id) = @_;
+	token_set $id eq 'contract' ? $self->contract($id) : $self->proof($id);
 }
 
 #---------------------
@@ -123,7 +130,7 @@ sub contractsForService($$)
 
 sub saveContract($)
 {	my ($self, $asset) = @_;
-	$self->contract->save($asset->toDB);
+	$self->contracts->save($asset->toDB);
 }
 
 sub contract($)
@@ -165,5 +172,27 @@ sub removeService($)
 	$self->proofs->remove({ id => $service->id });
 }
 
+=method publicServiceIndex %options
+produce an ARRAY of owners (sorted by name), each containing an ARRAY of offered
+enabled services (also sorted by name)
+=cut
+
+sub publicServiceIndex()
+{	my ($self, %args) = @_;
+	my %owners;
+warn "#1";
+	my $services = $self->proofs->find({ set => 'services', status => 'public' })->all;
+use Data::Dumper;
+warn "#2 ", Dumper $services;
+	push @{$owners{$_->{ownerid}}{services}}, +{ id => $_->{id}, name => $_->{name} }
+		for @$services;
+
+	foreach my $ownerid (keys %owners) {
+		my $owner = $::app->users->getOwner($ownerid) or next;   # disappeared?
+		$owners{$ownerid}{name} = $owner->name;
+	}
+
+	[ sort { $a->{name} cmp $b->{name} } values %owners ];
+}
 
 1;

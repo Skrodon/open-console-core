@@ -27,10 +27,8 @@ sub create($%)
 
 	my $owner = delete $insert->{owner} or panic;
 	$insert->{ownerid}   = $owner->id;
-	$insert->{ownerclass}= ref $owner;
 
-	my $self = $class->SUPER::create($insert, %args);
-	$self;
+	$class->SUPER::create($insert, %args);
 }
 
 #-------------

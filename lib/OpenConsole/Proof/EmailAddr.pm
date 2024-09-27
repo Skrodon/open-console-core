@@ -25,11 +25,15 @@ sub create($%)
 =cut
 
 sub schema()  { '20240210' }
-sub set()     { 'emailaddrs' }
 sub element() { 'emailaddr'  }
-sub sort()    { lc $_[0]->_data->{email} }
+sub set()     { 'emailaddrs' }
+sub elemName(){ __"Email address" }
+sub setName() { __"Email addresses" }
+sub iconFA()  { 'fa-solid fa-envelope-circle-check' }
 
 sub email()   { $_[0]->_data->{email} }
+*name = \&email;
+
 sub supportsSubAddressing() { $_[0]->_data->{sub_addressing} }
 
 #-------------

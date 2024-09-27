@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: EUPL-1.2-or-later
 
 package OpenConsole::Asset::Contract;
-use Mojo::Base 'OpenConsole::Mango::Object';
+use Mojo::Base 'OpenConsole::Asset';
 
 use Log::Report 'open-console-core';
 
 use Encode            qw(decode);
-use OpenConsole::Util qw(new_token);
+use OpenConsole::Util qw(new_token timestamp);
+use Scalar::Util      qw(blessed);
 
 =chapter NAME
 OpenConsole::Asset::Contract - a contract between an account and a service
@@ -23,8 +24,9 @@ service provider.  The service provider is a group identity.
 sub create($%)
 {	my ($class, $insert, %args) = @_;
 	if(my $service = delete $insert->{service})
-	{	$insert->{serviceid} = $service->id;
+	{	$insert->{serviceid} = blessed $service ? $service->id : $service;
 	}
+	$insert->{status} ||= 'incomplete';
 	$class->SUPER::create($insert, %args);
 }
 
@@ -37,13 +39,22 @@ sub _summary(%)
 =section Attributes
 =cut
 
-sub schema() { '20240917' }
-sub set()    { 'contracts' }
-sub element(){ 'contract'  }
+sub schema()   { '20240917' }
+sub set()      { 'contracts' }
+sub element()  { 'contract'  }
+sub setName()  { __"Contracts" }
+sub elemName() { __"Contract" }
+sub iconFA()   { 'fa-solid fa-handshake-simple' }
 
-sub sort()      { lc $_[0]->_data->{name} }
 sub name()      { $_[0]->_data->{name} }
 sub serviceId() { $_[0]->_data->{serviceid} }
+sub agreedAnnex()     { $_[0]->_data->{annex} }
+sub agreedTerms()     { $_[0]->_data->{terms} }
+sub acceptedLicense() { $_[0]->_data->{license} }
+sub isSigned()        { $_[0]->_data->{signed} }
+sub presel($)         { $_[0]->_data->{presel}{$_[1]} ||= {} }
+
+sub service()   { $_[0]->{OAC_service} ||= $::app->assets->service($_[0]->serviceId) }
 
 #-------------
 =section Action
@@ -57,6 +68,15 @@ sub save(%)
 {   my ($self, %args) = @_;
 	$self->setData(id => new_token 'C') if $self->isNew;
 	$self->SUPER::save(%args);
+}
+
+sub sign($)
+{	my ($self, $who) = @_;
+	$self->setStatus('signed');
+	$self->_data->{signed} = +{
+		when => timestamp,
+		by   => $who->id,
+	};
 }
 
 1;

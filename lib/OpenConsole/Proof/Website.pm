@@ -29,12 +29,16 @@ sub create($%)
 =section Attributes
 =cut
 
-sub schema() { '20240218' }
-sub set()    { 'websites' }
-sub element(){ 'website'  }
-sub sort()   { lc $_[0]->_data->{website} }
+sub schema()  { '20240218' }
+sub element() { 'website'  }
+sub set()     { 'websites' }
+sub elemName(){ __"Website" }
+sub setName() { __"Websites" }
+sub iconFA()  { 'fa-solid fa-file-circle-plus' }
 
-sub website()        { $_[0]->_data->{website} }
+sub website() { $_[0]->_data->{website} }
+*name = \&website;
+
 sub challenge()      { $_[0]->_data->{challenge} }
 
 sub verifyURL()      { $_[0]->_data->{verifyURL} || {}}
@@ -76,6 +80,19 @@ sub score(%)
 	}
 
 	$score;
+}
+
+=method link [$path]
+Compose a link to a page on this website.  When the status of the proof is
+questionable, no link will be made.
+=cut
+
+sub link(;$)
+{	my ($self, $path) = @_;
+	! $self->hasExpired or return undef;
+
+	my $ws = $self->website;
+	! defined $path || ! length $path ? $ws : "$ws/$path" =~ s!/{2,}!/!gr;
 }
 
 1;

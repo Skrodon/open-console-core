@@ -39,12 +39,13 @@ sub _summary(%)
 =section Attributes
 =cut
 
-sub schema() { '20240912' }
-sub set()    { 'services' }
-sub element(){ 'service'  }
+sub schema()   { '20240912' }
+sub set()      { 'services' }
+sub element()  { 'service'  }
+sub setName()  { __"Services" }
+sub elemName() { __"Service" }
+sub iconFA()   { 'fa-solid fa-chart-line' }
 
-sub sort()     { $_[0]->_data->{name} }
-sub name()     { $_[0]->_data->{name} }
 sub secret()   { $_[0]->_data->{secret} }
 sub contact()  { $_[0]->_data->{contact} }
 sub support()  { $_[0]->_data->{support} }
@@ -54,14 +55,18 @@ sub payments()  { $_[0]->_data->{payments} }
 sub groupOnly() { $_[0]->_data->{group_only} }
 sub licenseLink() { $_[0]->_data->{license_link} }
 sub description() { $_[0]->_data->{description} }
+sub usability()   { $_[0]->_data->{usability} }
 
 sub endpointWebsite() { $_[0]->_data->{endpoint_ws} }
 sub endpointPath()    { $_[0]->_data->{endpoint_path} }
-sub infoWebsite()     { $_[0]->_data->{info_ws} }
+sub infoWebsite()     { $_[0]->_data->{info_ws} }        # see also useInfoWebsite()
 sub infoPath()        { $_[0]->_data->{info_path} }
 sub needsAssets()     { $_[0]->_data->{needs_assets} }
 sub explainUser()     { $_[0]->_data->{explain_user} }
 sub explainGroup()    { $_[0]->_data->{explain_group} }
+
+sub contractPersons() { my $u = $_[0]->usability; $u eq 'person' || $u eq 'any' }
+sub contractGroups()  { my $u = $_[0]->usability; $u eq 'group'  || $u eq 'any' }
 
 #-------------
 =section Action
@@ -86,6 +91,18 @@ sub changeSecret($)
 {	my ($self, $secret) = @_;
 	$self->_data->{secret} = encrypt_secret $secret;
     $self;
+}
+
+=method useInfoWebsite
+Returns both the proof, as the path inside the website when the proof is valid.
+=cut
+
+my %assets;
+sub useInfoWebsite()
+{	my ($self) = @_;
+	my $ws    = $self->infoWebsite or return ();
+	my $proof = $assets{$ws} ||= $::app->assets->asset($ws) or return ();
+	($proof, $proof->link($self->infoPath));
 }
 
 1;

@@ -57,6 +57,10 @@ sub _summary(%)
 sub schema()     { '20240111' }
 sub element()    { 'identity' }
 sub set()        { 'identities' }
+sub iconFA()     { 'fa-solid fa-ghost' }
+sub elemName()   { __"Identity" }
+sub setName()    { __"Identities" }
+
 sub isPerson()   { 1 }
 sub isIdentity() { 1 }
 sub isGroup()    { 0 }
@@ -66,6 +70,8 @@ sub isGroup()    { 0 }
 
 sub userId()     { $_[0]->_data->{userid} }
 sub role()       { $_[0]->_data->{role} }
+*name = \&role;
+
 sub fullname()   { $_[0]->_data->{fullname} }
 sub nickname()   { $_[0]->_data->{nickname} }
 sub language()   { $_[0]->_data->{language} }
