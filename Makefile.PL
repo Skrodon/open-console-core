@@ -55,7 +55,7 @@ WriteMakefile
 sub MY::postamble { <<'__POSTAMBLE' }
 
 # for DIST
-RAWDIR          =
+RAWDIR          = SKIP
 DISTDIR         = /home/markov/shared/perl/public_html/open-console-core/source
 
 # for POD
