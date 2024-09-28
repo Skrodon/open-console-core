@@ -59,7 +59,6 @@ sub set()       { 'accounts' }
 sub elemName()  { __"Account" }
 sub setName()   { __"Accounts" }
 sub iconFA()    { 'fa-solid fa-user' }
-sub name()      { (__"Personal properties")->toString }
 
 sub isPerson()  { 1 }
 sub isIdentity(){ 0 }
@@ -67,6 +66,7 @@ sub isGroup()   { 0 }
 
 #### Keep these attributes in sync with OwnerConsole::Collector::Account::submit()
 
+sub name()      { (__"Personal properties")->toString }
 sub email()     { $_[0]->_data->{email}  }
 sub birth()     { $_[0]->_data->{birth_date} }
 sub gender()    { $_[0]->_data->{gender} }

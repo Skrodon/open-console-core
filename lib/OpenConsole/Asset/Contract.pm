@@ -70,13 +70,7 @@ sub save(%)
 	$self->SUPER::save(%args);
 }
 
-sub sign($)
-{	my ($self, $who) = @_;
-	$self->setStatus('signed');
-	$self->_data->{signed} = +{
-		when => timestamp,
-		by   => $who->id,
-	};
-}
+sub sign($) { $_[0]->setData(status => 'signed', signed => +{ when => timestamp, by => $_[1]->id }) }
+sub invalidate() { $_[0]->setData(status => 'incomplete', signed => undef) }
 
 1;

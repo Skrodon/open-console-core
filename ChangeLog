@@ -7,6 +7,7 @@ version 0.03:
 
 	Improvements:
 	- many new fields in Service objects.
+	- Contract object
 
 version 0.02: Wed 18 Sep 14:56:19 CEST 2024
 
