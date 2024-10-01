@@ -15,14 +15,21 @@ OpenConsole::Mango::Object - base for any database storable object
 =chapter METHODS
 
 =section Constructors
+
+=c_method fromDB \%data, %options
+Revive this object from its database storage.  The %options are passed
+to the object constructore.
+
+The expiration of the object is always checked.  Every object may expire.
+The database does not actively track expiration for performance reasons.
 =cut
 
 use Data::Dumper;
 $Data::Dumper::Indent = 1;
 
-sub fromDB($)
-{	my ($class, $data) = @_;
-	my $self = $class->new(_data => $data);
+sub fromDB($%)
+{	my ($class, $data, %args) = @_;
+	my $self = $class->new(_data => $data, %args);
 use Data::Dumper;
 warn "MO($class) FromDB:", Dumper $data;
 
@@ -32,10 +39,19 @@ warn "MO($class) FromDB:", Dumper $data;
 	$self;
 }
 
+#XXX work in progress
 sub fromSummary($)
 {	my ($class, $data) = @_;
 	$class->new(_sum => $data);
 }
+
+=c_method create \%data, %options
+Create a new object, not yet in the database.
+
+The %data is exactly what is stored in the database, and usually hidden
+internally in the abstract objects.  Only the Controller modules are
+allowed to handle these internals, nowhere else!
+=cut
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
@@ -123,7 +139,7 @@ return 0;
 }
 
 =method expires
-Returns the M<DateTime>-object which represents when this Asster will
+Returns the M<DateTime>-object which represents when this object will
 retire.  Returns C<undef> when no expiration is set.
 =cut
 

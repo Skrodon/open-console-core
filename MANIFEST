@@ -2,6 +2,7 @@ ChangeLog
 LICENSES/EUPL-1.2-EN.txt
 MANIFEST
 Makefile.PL
+Programming.md
 README.md
 lib/OpenConsole.pm
 lib/OpenConsole/Account.pm
