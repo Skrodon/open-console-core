@@ -6,7 +6,7 @@ use ExtUtils::MakeMaker;
 use 5.016;
 
 WriteMakefile
- ( NAME     => 'Open-Console-Core'
+ ( NAME     => 'OpenConsole'
  , VERSION  => '0.04'
 
  , PREREQ_PM    => { 
@@ -63,5 +63,10 @@ FIRST_YEAR      = 2024
 EMAIL           = mark@open-console.eu
 EXTENDS         = ../open-console-owner:../open-console-tasks:../open-console-connect
 WEBSITE         = http://perl.overmeer.net/open-console
+
+# for HTML
+HTML_DOCROOT    = /open-console/html
+HTML_OUTPUT     = /home/markov/shared/perl/public_html/open-console/html
+
 
 __POSTAMBLE
