@@ -61,6 +61,8 @@ our @EXPORT_OK = (@is_valid, @validators, @bool, @tokens, @time, qw(
 	domain_suffix
 	encrypt_secret
 	verify_secret
+	is_private_ipv4
+	is_private_ipv6
 ));
 
 our %EXPORT_TAGS = (
@@ -165,16 +167,17 @@ which indicate its application.  The latter mainly for debugging purposes.
 =cut
 
 my %token_infixes = (
-   A => [ account    => 'OpenConsole::Account'  ],
-   C => [ contract   => 'OpenConsole::Asset::Contract' ],
-   G => [ group      => 'OpenConsole::Group'    ],
-   H => [ challenge  => undef                   ],  # cHallenge
-   I => [ identity   => 'OpenConsole::Identity' ],
-   M => [ email      => undef                   ],  # send eMail
-   N => [ invite     => undef                   ],  # iNvite email
-   P => [ proof      => 'OpenConsole::Asset::Proof'   ],
-   S => [ service    => 'OpenConsole::Asset::Service' ],
-   T => [ appsession => undef                   ],  # Temporary application session id
+	A => [ account    => 'OpenConsole::Account'  ],
+	C => [ contract   => 'OpenConsole::Asset::Contract' ],
+	G => [ group      => 'OpenConsole::Group'    ],
+	H => [ challenge  => undef                   ],  # cHallenge
+	I => [ identity   => 'OpenConsole::Identity' ],
+	M => [ email      => undef                   ],  # send eMail
+	N => [ invite     => undef                   ],  # iNvite email
+	P => [ proof      => 'OpenConsole::Asset::Proof'   ],
+	R => [ comply     => 'ConnectConsole::Comply'      ],  # Run connection
+	S => [ service    => 'OpenConsole::Asset::Service' ],
+	T => [ appsession => 'ConnectConsole::AppSession'  ],  # Temporary application session id
 );
 
 =function new_token $prefix
@@ -242,7 +245,7 @@ sub false() { JSON::PP::false }
 sub bool($) { $_[0] ? JSON::PP::true : JSON::PP::false }
 
 #-----------
-=section Domain-names
+=section Domain-names and IP
 
 =method domain_suffix $name
 Split a given (host~) $name into an (optional) host part, an
@@ -291,6 +294,32 @@ sub domain_suffix($)
 
 	($host, $domain, $suffix);
 }
+
+=method is_private_ipv4 $address
+Returns true when the address (in dotted notation) is not a valid public
+ipv4 address.  RFC1918
+=cut
+
+sub is_private_ipv4($)
+{	$_[0] =~
+	  m/ ^  10 \.
+	   | ^ 127 \. 0
+	   | ^ 172 \. (?: 1[6-9]|2[0-9]|3[01] ) \.
+	   | ^ 192 \. 168 \.
+	   | ^ (?: 22[4-9] | 23[0-9] ) \.
+	   | ^ 255 \. 255 \. 255 \. 255 $
+	   /x;
+}
+
+=method is_private_ipv6 $address
+Returns true when the address (in dotted notation) is not a valid public
+ipv6 address.
+=cut
+
+sub is_private_ipv6($)
+{	$_[0] =~ m! ^ f[cdef] !xi;   #XXX incomplete
+}
+
 
 #--------------
 =section secrets
