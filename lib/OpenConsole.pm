@@ -11,8 +11,6 @@ use feature 'state';
 use List::Util  qw(first);
 
 use OpenConsole::Util          qw(reseed_tokens);
-use OpenConsole::Model::Users  ();
-use OpenConsole::Model::Assets ();
 
 use Mango;
 use constant
@@ -39,43 +37,54 @@ Standard M<Mojo::Base> constructors.
 The application may configure different MongoDB databases (clusters), for different
 characteristics of tasks.
 
-=method users
-The C<users> database (M<OpenConsole::Model::Users>), contains generic user and group
-information.  It is important data, and inconsistencies in the administration shall not
-happen at any cost.
-
-=method assets
-The C<assets> database (M<OpenConsole::Model::Assets>) contains the proof,
-contract, and service administration.  Less important than the C<users> database information.
 =cut
 
 my %_dbservers;
 sub _mango($)  # server connections shared, when databases on same server
 {	my ($self, $class, $model) = @_;
-	my $config = $self->config($model);
-    my $server = $config->{server}    || MONGODB_CONNECT;
+
+	eval "require $class" or panic $@;
+	my $config = $self->config($model) or panic "DB $model not configured";
+
+	my $server = $config->{server}    || MONGODB_CONNECT;
 	my $client = $_dbservers{$server} ||= Mango->new($server);
 	$class->new(db => $client->db($config->{dbname}));
 }
+
+=method users
+The C<users> database (M<OpenConsole::Model::Users>), contains generic user and group
+information.  It is important data, and inconsistencies in the administration shall not
+happen at any cost.
+=cut
 
 sub users()
 {	my $self = shift;
 	state $u = $self->_mango('OpenConsole::Model::Users' => 'userdb');
 }
 
+=method assets
+The C<assets> database (M<OpenConsole::Model::Assets>) contains the proof,
+contract, and service administration.  Less important than the C<users> database information.
+=cut
+
 sub assets()
 {	my $self = shift;
 	state $u = $self->_mango('OpenConsole::Model::Assets' => 'assetsdb');
 }
 
-#----------------
-=section Running the daemons
-
-=method isAdmin $account
+=method connect
+Connects to the C<connect> database (M<ConnectConsole::Model::Connect>) which
+contains the run-time administration for the connections between external
+applications and their users.
 =cut
 
-my %admins;   # emails are case insensitive
-sub isAdmin($) { $admins{lc $_[1]->email} }
+sub connect()
+{	my $self = shift;
+	state $u = $self->_mango('ConnectConsole::Model::Connect' => 'connectdb');
+}
+
+#----------------
+=section Running the daemons
 
 =method startup
 This method will run once at server start.
@@ -93,13 +102,6 @@ sub startup
 
 	### Configure the application
 	$self->secrets($config->{secrets});
-
-	%admins = map +(lc($_) => 1), @{$config->{admins} || []};
-
-	$self->users->upgrade;
-	$self->assets->upgrade;
-
-#$::app->users->db->collection('accounts')->remove({});  #XXX hack clean whole accounts table
 
 	srand;
 	Mojo::IOLoop->timer(0 => sub { srand; reseed_tokens });
