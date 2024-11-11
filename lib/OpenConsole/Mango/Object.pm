@@ -65,23 +65,23 @@ sub create($%)
 #------------------------
 =section Attributes
 
-=method ci_set
+=method set
 The name of the C<set> where this object belongs to.  Usually then name of
 the M<element()> followed by a C<s>.
 
-=method ci_setName
+=ci_method setName
 The display representation of the name of the set.
 
-=method ci_iconFA
+=ci_method iconFA
 Which FontAwesome character is representing this set.
 
-=method ci_element
+=ci_method element
 The type of element this object presents.
 
-=method ci_elemName
+=ci_method elemName
 The display of a single element in this set.
 
-=method ci_schema
+=ci_method schema
 The version of the current implementation
 =cut
 
