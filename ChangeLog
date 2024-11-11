@@ -5,6 +5,7 @@ version 0.04:
 	Improvements:
 	- add some programming instructions.
 	- add is_pivate_ipv4() and is_private_ipv6().
+	- generate HTML version of all OpenConsole modules.
 
 version 0.03: Sat 28 Sep 13:19:43 CEST 2024
 
