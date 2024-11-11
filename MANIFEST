@@ -11,6 +11,7 @@ lib/OpenConsole/Asset/Contract.pm
 lib/OpenConsole/Asset/Proof.pm
 lib/OpenConsole/Asset/Service.pm
 lib/OpenConsole/Assets.pm
+lib/OpenConsole/Comply.pm
 lib/OpenConsole/Group.pm
 lib/OpenConsole/Identity.pm
 lib/OpenConsole/Mango/Object.pm

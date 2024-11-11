@@ -46,15 +46,16 @@ sub setName()  { __"Contracts" }
 sub elemName() { __"Contract" }
 sub iconFA()   { 'fa-solid fa-handshake-simple' }
 
-sub name()      { $_[0]->_data->{name} }
+=method isSigned
+Returns a HASH which explains how the contract was signed.
+sub isSigned() { $_[0]->_data->{signed} }
+
 sub serviceId() { $_[0]->_data->{serviceid} }
 sub agreedAnnex()     { $_[0]->_data->{annex} }
 sub agreedTerms()     { $_[0]->_data->{terms} }
 sub acceptedLicense() { $_[0]->_data->{license} }
-sub isSigned()        { $_[0]->_data->{signed} }
 sub presel($)         { $_[0]->_data->{presel}{$_[1]} ||= {} }
-
-sub service()   { $_[0]->{OAC_service} ||= $::app->assets->service($_[0]->serviceId) }
+sub service()  { $_[0]->{OAC_service} ||= $::app->assets->service($_[0]->serviceId) }
 
 #-------------
 =section Action
@@ -69,6 +70,13 @@ sub save(%)
 	$self->setData(id => new_token 'C') if $self->isNew;
 	$self->SUPER::save(%args);
 }
+
+=method sign $account
+Register that this contract is signed by the logged-in account.
+
+=method invalidate
+Revoke the signature.
+=cut
 
 sub sign($) { $_[0]->setData(status => 'signed', signed => +{ when => timestamp, by => $_[1]->id }) }
 sub invalidate() { $_[0]->setData(status => 'incomplete', signed => undef) }

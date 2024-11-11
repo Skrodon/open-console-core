@@ -71,7 +71,7 @@ When an $identity is provided, then only the assets which match that will be ret
 
 sub _set($)
 {	my ($self, $set) = @_;
-	$self->{"OA_$set"} ||= +{ map +($_->id => $_),  $::app->assets->assetForOwner($set, $self->owner) };
+	$self->{"OA_$set"} ||= +{ map +($_->id => $_), $::app->assets->assetForOwner($set, $self->owner) };
 }
 
 sub for($;$)
