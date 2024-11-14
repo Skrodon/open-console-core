@@ -2,6 +2,9 @@
 
 version 0.04:
 
+	Fixes:
+	- remove \r from input texts.
+
 	Improvements:
 	- add some programming instructions.
 	- add is_pivate_ipv4() and is_private_ipv6().

@@ -99,7 +99,7 @@ sub val_line($)
 sub val_text($)
 {	my $text = shift;
 	defined $text && $text =~ /\S/ or return undef;
-	$text =~ s/[ \t]+/ /gr =~ s/ $//gmr =~ s/\n{2,}/\n/gr;
+	$text =~ s/\r\n?/\n/gr =~ s/[ \t]+/ /gr =~ s/ $//gmr =~ s/\n{2,}\Z/\n/gr;
 }
 
 sub is_valid_email($) { Email::Valid->address($_[0]) }
@@ -297,7 +297,7 @@ sub domain_suffix($)
 
 =method is_private_ipv4 $address
 Returns true when the address (in dotted notation) is not a valid public
-ipv4 address.  RFC1918
+ipv4 address available to websites.  RFC1918
 =cut
 
 sub is_private_ipv4($)
@@ -313,11 +313,11 @@ sub is_private_ipv4($)
 
 =method is_private_ipv6 $address
 Returns true when the address (in dotted notation) is not a valid public
-ipv6 address.
+ipv6 address, available to websites.
 =cut
 
 sub is_private_ipv6($)
-{	$_[0] =~ m! ^ f[cdef] !xi;   #XXX incomplete
+{	$_[0] !~ m/ ^ (?: 64 | 2002 ) \: /x;
 }
 
 
