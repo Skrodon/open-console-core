@@ -100,12 +100,16 @@ program and database.
 
 =method created
 The moment of creation of the object.
+
+=method updated
+Moment of last save.
 =cut
 
 # Mongo: When an object has been created, its id is not in _id
 sub id()      { $_[0]->_data->{id} }
 sub name()    { $_[0]->_data->{name} }
 sub created() { my $c = $_[0]->_data->{created}; $c ? $c->to_datetime : undef }
+sub updated() { $_[0]->_data->{updated} }
 
 #-------------
 =section Maintainance
@@ -196,7 +200,7 @@ sub setData(@)
 	{	my ($field, $value) = (shift @_, shift @_);
 
 		# NOTE: blank fields do not exist: blank==missing
-		if(my $changed = +($data->{$field} // ' ') ne ($value // ' '))
+		if(my $changed = ref $value || +($data->{$field} // ' ') ne ($value // ' '))
 		{	$data->{$field} = $value;
 warn "CHANGED $field to " . ($value // 'undef');
 			$self->changed;
@@ -289,8 +293,8 @@ means "up to date".  Therefore, the schema version gets reset.
 sub save(%)
 {	my ($self, %args) = @_;
 
-	$self->setData(schema => $self->schema)
-		if $args{by_user};
+	$self->setData(updated => now);
+	$self->setData(schema  => $self->schema) if $args{by_user};
 
 warn "Save ".$self->element." ".$self->id;
 
