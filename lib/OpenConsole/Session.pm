@@ -72,6 +72,12 @@ sub addWarning($$)
 	$self->_trace('warning: ' . $warn->toString);
 }
 
+sub addInfo($$)
+{	my ($self, $field, $info) = @_;
+	$self->pushData(info => [ $field => blessed $info ? $info->toString($self->lang) : $info ]);
+	$self->_trace('info: ' . $info->toString);
+}
+
 sub notify($$)
 {	my ($self, $level, $msg) = @_;
 	# Hopefully, later we can have nicer notifications than a simple alert.
