@@ -8,6 +8,7 @@ use Log::Report    'open-console-core';
 
 use Crypt::PBKDF2  ();
 use DateTime       ();
+use DateTime::Format::ISO8601 ();
 use DateTime::Format::Duration::ISO8601 ();
 use Email::Valid   ();
 use File::Slurper  qw/read_lines/;
@@ -50,6 +51,7 @@ my @tokens = qw(
 my @time = qw(
 	bson2datetime
 	timestamp
+	timestamp2dt
 	duration
 	now
 );
@@ -149,21 +151,33 @@ sub timestamp(;$)
 	$stamp->iso8601 . 'Z';
 }
 
+=function timestamp2dt $iso8601
+Convert any kind of ios8601 formatted time into a M<DateTime> object.
+=cut
+
+sub timestamp2dt($)
+{	DateTime::Format::ISO8601->parse_datetime($_[0]);
+}
+
 =function duration $iso8601
 Parse a iso8601 duration string (like C<P2W1DT15H>) into a M<DateTime::Duration> object.
-Returns C<undef> on failure.
+Returns C<undef> on failure.  Returns the parameter when it is already a duration object.
 =cut
 
 my $dur = DateTime::Format::Duration::ISO8601->new(on_error => sub {});
-sub duration($) { $dur->parse_duration($_[0]) }
+sub duration($)
+{	my $d = shift;
+	blessed $d && $d->isa('DateTime::Duration') ? $d : $dur->parse_duration($d);
+}
 
 #-----------
 =section Tokens
 Tokens are cryptographically strong unique codes.  There is no protection against the
-generation of dupplicates, because that chance is uncredably small.
+generation of duplicates, because that chance is uncredibly small.
 
 The unique part is preceeded by a code for the Open Console server instance, and a prefix
-which indicate its application.  The latter mainly for debugging purposes.
+which indicate its application.  The latter mainly for debugging purposes.  The total will
+never exceed 63 characters.
 =cut
 
 my %token_infixes = (
