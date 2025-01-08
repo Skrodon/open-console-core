@@ -15,6 +15,7 @@ use File::Slurper  qw/read_lines/;
 use JSON::PP       ();
 use List::Util     qw(first);
 use LWP::UserAgent ();
+use Mango::BSON::Time ();
 use Session::Token ();
 use Time::HiRes    ();
 
@@ -50,6 +51,8 @@ my @tokens = qw(
 
 my @time = qw(
 	bson2datetime
+	dt2bson
+	timestamp2bson
 	timestamp
 	timestamp2dt
 	duration
@@ -127,14 +130,35 @@ sub is_valid_zulu($)
 #----------
 =section Time
 
-=function bson2datetime $timezone
-Represent a timestamp in the MongoDB specific time format (M<Mango::BSON::Time>), in
-human readible form.
+=function bson2datetime $bson_time, [$timezone]
+Convert a timestamp in the MongoDB specific time format (M<Mango::BSON::Time>) into
+a M<DateTime> object.
 =cut
 
-sub bson2datetime($$)
+sub bson2datetime($;$)
 {	my ($stamp, $tz) = @_;
-	$stamp ? DateTime->from_epoch(epoch => $stamp->to_epoch)->set_time_zone($tz) : undef;
+	$stamp ? DateTime->from_epoch(epoch => $stamp->to_epoch)->set_time_zone($tz // 'Z') : undef;
+}
+
+=function dt2bson $dt
+Convert a M<DateTime> object into a MongoDB time object.
+=cut
+
+sub dt2bson($)
+{	my $dt = shift or return;
+	Mango::BSON::Time->new($dt->to_epoch * 1000);
+}
+
+=function timestamp2bson $iso8601
+Convert an timestamp in string format to a bson time object.
+=cut
+
+#XXX Most timestamps are in "YYYY...Z" string format to prepare for move to CouchDB, but
+#XXX in rare cases, we need a MongoDB BSON::Time object.  Mainly for automatic expire.
+sub timestamp2dt($);
+sub timestamp2bson($)
+{	my $stamp = shift or return;
+	dt2bson timestamp2dt $stamp;
 }
 
 =function now
@@ -167,7 +191,7 @@ Returns C<undef> on failure.  Returns the parameter when it is already a duratio
 my $dur = DateTime::Format::Duration::ISO8601->new(on_error => sub {});
 sub duration($)
 {	my $d = shift;
-	blessed $d && $d->isa('DateTime::Duration') ? $d : $dur->parse_duration($d);
+	blessed $d && $d->isa('DateTime::Duration') ? $d : defined $d ? $dur->parse_duration($d) : undef;
 }
 
 #-----------
