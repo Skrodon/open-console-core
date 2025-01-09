@@ -16,6 +16,7 @@ use JSON::PP       ();
 use List::Util     qw(first);
 use LWP::UserAgent ();
 use Mango::BSON::Time ();
+use Mojo::URL      ();
 use Session::Token ();
 use Time::HiRes    ();
 
@@ -68,6 +69,7 @@ our @EXPORT_OK = (@is_valid, @validators, @bool, @tokens, @time, qw(
 	verify_secret
 	is_private_ipv4
 	is_private_ipv6
+	url
 ));
 
 our %EXPORT_TAGS = (
@@ -358,6 +360,14 @@ sub is_private_ipv6($)
 {	$_[0] !~ m/ ^ (?: 64 | 2002 ) \: /x;
 }
 
+=method url $url
+Parse the $url into a M<Mojo::URL> object.
+=cut
+
+sub url($)
+{	my $u = shift // return undef;
+	blessed $u && $u->isa('Mojo::URL') ? $u : Mojo::URL->new($u);
+}
 
 #--------------
 =section secrets
