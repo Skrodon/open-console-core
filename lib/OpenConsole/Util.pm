@@ -46,7 +46,6 @@ my @tokens = qw(
 	token_infix
 	token_set
 	token_class
-	in_token_class
 	is_valid_token
 );
 
@@ -57,6 +56,7 @@ my @time = qw(
 	timestamp
 	timestamp2dt
 	duration
+	duration2secs
 	now
 );
 	
@@ -148,7 +148,7 @@ Convert a M<DateTime> object into a MongoDB time object.
 
 sub dt2bson($)
 {	my $dt = shift or return;
-	Mango::BSON::Time->new($dt->to_epoch * 1000);
+	Mango::BSON::Time->new($dt->epoch * 1000);
 }
 
 =function timestamp2bson $iso8601
@@ -196,6 +196,17 @@ sub duration($)
 	blessed $d && $d->isa('DateTime::Duration') ? $d : defined $d ? $dur->parse_duration($d) : undef;
 }
 
+=function duration2secs $duration
+From a M<DateTime::Duration> object into a number of seconds, for an average situation.
+=cut
+
+sub duration2secs($)
+{	my $dur = shift or return undef;
+	my %d   = $dur->deltas;
+	# DateTime::Duration internal storage really sucks: hours and years are faked
+	(($d->{months} * 30 + $d->{days}) * 24*60 + $d->{minutes}) * 60 + $d->{seconds};
+}
+
 #-----------
 =section Tokens
 Tokens are cryptographically strong unique codes.  There is no protection against the
@@ -226,7 +237,6 @@ my %token_infixes = (
 =function token_infix $token
 =function token_set $token
 =function token_class $token
-=function in_token_class $char
 =cut
 
 my $token_generator = Session::Token->new;
@@ -236,7 +246,6 @@ sub is_valid_token($) { $_[0] =~ m!^[a-z0-9]{5,8}\:[A-Z]\:[a-zA-Z0-9]{10,50}$! }
 sub token_infix($)    { $_[0] =~ m!\:(.)\:! ? $1 : undef }
 sub token_set($)      { my $i = token_infix $_[0]; $i ? $token_infixes{$i}[0] : undef }
 sub token_class($)    { my $i = token_infix $_[0]; $i ? $token_infixes{$i}[1] : undef }
-sub in_token_class($$){ $_[0] =~ m!\:(.)\:! && $1 eq $_[1] }
 
 #-----------
 =section Browser client
