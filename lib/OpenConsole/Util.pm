@@ -57,6 +57,7 @@ my @time = qw(
 	timestamp2dt
 	duration
 	duration2secs
+	to_secs
 	now
 );
 	
@@ -197,14 +198,32 @@ sub duration($)
 }
 
 =function duration2secs $duration
-From a M<DateTime::Duration> object into a number of seconds, for an average situation.
+From a M<DateTime::Duration> object into a number of seconds.  This is calculated without time
+base, so for an average situation: every month has 30 days.
 =cut
 
 sub duration2secs($)
 {	my $dur = shift or return undef;
-	my %d   = $dur->deltas;
+	my $d   = $dur->deltas;
 	# DateTime::Duration internal storage really sucks: hours and years are faked
 	(($d->{months} * 30 + $d->{days}) * 24*60 + $d->{minutes}) * 60 + $d->{seconds};
+}
+
+=function to_secs $string|$duration
+When the parameter is a string which starts with a 'P', then it is interpreted as
+an ISO8601 duration, otherwise should be a number or M<DateTime::Duration> object.
+=cut
+
+sub to_secs($)
+{	my $d = shift // return undef;
+	return $d if $d =~ m/^[0-9]+$/;
+
+	unless(blessed $d)
+	{	$d =~ /^P/ or panic "Unregonized duration string";
+		$d = duration $d;
+	}
+	$d->isa('DateTime::Duration') or panic "Unexpected object for duration";
+	duration2secs $d;
 }
 
 #-----------

@@ -12,7 +12,7 @@ version 0.04:
 	- move connection to Users and Assets to OwnerConsole.
 	- every object got an updated field.
 	- ajax session addInfo and addGood.
-	- ::Util::datetime2dt(), ::dt2bson(), ::timestamp2bson(), ::url(), ::duration2secs().
+	- ::Util::datetime2dt(), ::dt2bson(), ::timestamp2bson(), ::url(), ::duration2secs(), ::to_secs().
 
 version 0.03: Sat 28 Sep 13:19:43 CEST 2024
 
