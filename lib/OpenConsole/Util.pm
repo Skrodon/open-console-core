@@ -17,6 +17,7 @@ use List::Util     qw(first);
 use LWP::UserAgent ();
 use Mango::BSON::Time ();
 use Mojo::URL      ();
+use Scalar::Util   qw(blessed);
 use Session::Token ();
 use Time::HiRes    ();
 
@@ -47,6 +48,7 @@ my @tokens = qw(
 	token_set
 	token_class
 	is_valid_token
+	bearer_token
 );
 
 my @time = qw(
@@ -204,9 +206,9 @@ base, so for an average situation: every month has 30 days.
 
 sub duration2secs($)
 {	my $dur = shift or return undef;
-	my $d   = $dur->deltas;
+	my %d   = $dur->deltas;
 	# DateTime::Duration internal storage really sucks: hours and years are faked
-	(($d->{months} * 30 + $d->{days}) * 24*60 + $d->{minutes}) * 60 + $d->{seconds};
+	(($d{months} * 30 + $d{days}) * 24*60 + $d{minutes}) * 60 + $d{seconds};
 }
 
 =function to_secs $string|$duration
@@ -265,6 +267,12 @@ sub is_valid_token($) { $_[0] =~ m!^[a-z0-9]{5,8}\:[A-Z]\:[a-zA-Z0-9]{10,50}$! }
 sub token_infix($)    { $_[0] =~ m!\:(.)\:! ? $1 : undef }
 sub token_set($)      { my $i = token_infix $_[0]; $i ? $token_infixes{$i}[0] : undef }
 sub token_class($)    { my $i = token_infix $_[0]; $i ? $token_infixes{$i}[1] : undef }
+
+=function bearer_token $string
+Extract a bearer token from a string (extracted from the Authentication header).
+=cut
+
+sub bearer_token($)   { defined $_[0] && $_[0] =~ m!^Bearer\s+([a-zA-Z0-9:]{1,100})$! ? $1 : undef }
 
 #-----------
 =section Browser client
