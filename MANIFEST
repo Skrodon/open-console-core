@@ -15,6 +15,7 @@ lib/OpenConsole/Comply.pm
 lib/OpenConsole/Group.pm
 lib/OpenConsole/Identity.pm
 lib/OpenConsole/Mango/Object.pm
+lib/OpenConsole/Model.pm
 lib/OpenConsole/Model/Assets.pm
 lib/OpenConsole/Model/Users.pm
 lib/OpenConsole/OpenID/Discovery.pm

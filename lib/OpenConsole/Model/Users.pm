@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: EUPL-1.2-or-later
 
 package OpenConsole::Model::Users;
-use Mojo::Base -base;
+use Mojo::Base 'OpenConsole::Model';
 
 use Log::Report 'open-console-core';
 
@@ -44,25 +44,8 @@ Bring the database tables to the newest configuration.
 
 sub upgrade
 {	my $self = shift;
-
-    #### Indices
-	# We can run "ensure_index()" as often as we want.
-
-#$self->accounts->drop_index('email');
-	$self->accounts->ensure_index({ id  => 1 }, { unique => bson_true });
-	$self->accounts->ensure_index({ email  => 1 }, {
-		unique    => bson_true,
-		collation => { locale => 'en', strength => 2 },  # address is case-insensitive
-	});
-
-#$self->identities->drop_index('userid');
-	$self->identities->ensure_index({ id  => 1 }, { unique => bson_true });
-	$self->identities->ensure_index({ userid  => 1 }, { unique => bson_false });
-
-	$self->groups->ensure_index({ id  => 1 }, { unique => bson_true });
-	$self->groups->ensure_index({ userid  => 1 }, { unique => bson_false });
-	$self->groups->ensure_index({ identid => 1 }, { unique => bson_false });
-	$self;
+	$self->SUPER::upgrade(@_);
+	$self->_upgrade_accounts->_upgrade_identities->_upgrade_groups;
 }
 
 =method getOwner $id
@@ -83,6 +66,19 @@ sub getOwner($)
 #---------------------
 =section The "account" table
 =cut
+
+sub _upgrade_accounts()
+{	my $self  = shift;
+	my $table = $self->accounts;
+	$self->_upgrade($table);
+#$self->accounts->drop_index('email');
+	$table->ensure_index({ id  => 1 }, { unique => bson_true });
+	$table->ensure_index({ email  => 1 }, {
+		unique    => bson_true,
+		collation => { locale => 'en', strength => 2 },  # address is case-insensitive
+	});
+	$self;
+}
 
 sub account($)
 {	my ($self, $userid) = @_;
@@ -123,6 +119,15 @@ sub allAccounts()
 =section The "identity" table
 =cut
 
+sub _upgrade_identities()
+{	my $self  = shift;
+	my $table = $self->identities;
+	$self->_upgrade($table);
+	$table->ensure_index({ id  => 1 }, { unique => bson_true });
+	$table->ensure_index({ userid  => 1 }, { unique => bson_false });
+	$self;
+}
+
 sub identity($)
 {	my ($self, $identid) = @_;
 	my $data = $self->identities->find_one({id => $identid})
@@ -155,6 +160,17 @@ sub allIdentities()
 #---------------------
 =section The "group" table
 =cut
+
+sub _upgrade_groups()
+{	my $self  = shift;
+	my $table = $self->groups;
+	$self->_upgrade($table);
+
+	$table->ensure_index({ id  => 1 }, { unique => bson_true });
+	$table->ensure_index({ userid  => 1 }, { unique => bson_false });
+	$table->ensure_index({ identid => 1 }, { unique => bson_false });
+	$self;
+}
 
 sub group($)
 {	my ($self, $groupid) = @_;

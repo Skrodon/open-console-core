@@ -14,6 +14,7 @@ version 0.04:
 	- ajax session addInfo and addGood.
 	- ::Util::datetime2dt(), ::dt2bson(), ::timestamp2bson(), ::url(), ::duration2secs(),
 	  ::to_secs(), ::bearer_token().
+	- add base class OpenConsole::Model
 
 version 0.03: Sat 28 Sep 13:19:43 CEST 2024
 

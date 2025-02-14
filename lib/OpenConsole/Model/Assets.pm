@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: EUPL-1.2-or-later
 
 package OpenConsole::Model::Assets;
-use Mojo::Base -base;
+use Mojo::Base 'OpenConsole::Model';
 
 use Log::Report 'open-console-core';
 
@@ -21,7 +21,7 @@ collections:
 =over 4
 =item * 'proofs'
 All kinds of proofs are in one table, to give fast access to them.
-They are only accessible via their id and they owner (Account, Identity, Group).
+They are only accessible via their id and their owner (Account, Identity, Group).
 
 =item * 'contracts'
 The signed service contracts.  These are also searcheable by service.
@@ -45,8 +45,8 @@ has contracts  => sub { $_[0]->{OMB_contr} ||= $_[0]->db->collection('contracts'
 
 sub upgrade
 {	my $self = shift;
-	$self->_upgrade_proofs
-		-> _upgrade_contracts;
+	$self->SUPER::upgrade(@_);
+	$self->_upgrade_proofs->_upgrade_contracts;
 }
 
 #---------------------
@@ -70,10 +70,12 @@ All kinds of proof are moved to the same table.
 =cut
 
 sub _upgrade_proofs()
-{	my $self = shift;
-	$self->proofs->ensure_index({ id => 1 }, { unique => bson_true });
-	$self->proofs->ensure_index({ ownerid => 1 }, { unique => bson_false });
-	$self->proofs->ensure_index({ identid => 1 }, { unique => bson_false });
+{	my $self  = shift;
+	my $table = $self->proofs;
+	$self->_upgrade($table);
+	$table->ensure_index({ id => 1 }, { unique => bson_true });
+	$table->ensure_index({ ownerid => 1 }, { unique => bson_false });
+	$table->ensure_index({ identid => 1 }, { unique => bson_false });
 	$self;
 }
 
@@ -105,11 +107,13 @@ The Service use contracts.
 =cut
 
 sub _upgrade_contracts()
-{	my $self = shift;
-	$self->contracts->ensure_index({ id => 1 }, { unique => bson_true });
-	$self->contracts->ensure_index({ ownerid => 1 }, { unique => bson_false });
-	$self->contracts->ensure_index({ identid => 1 }, { unique => bson_false });
-	$self->contracts->ensure_index({ serviceid => 1 }, { unique => bson_false });
+{	my $self  = shift;
+	my $table = $self->contracts;
+	$self->_upgrade($table);
+	$table->ensure_index({ id => 1 }, { unique => bson_true });
+	$table->ensure_index({ ownerid => 1 }, { unique => bson_false });
+	$table->ensure_index({ identid => 1 }, { unique => bson_false });
+	$table->ensure_index({ serviceid => 1 }, { unique => bson_false });
 	$self;
 }
 
