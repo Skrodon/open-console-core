@@ -26,6 +26,7 @@ sub create($%)
 	$insert->{set}       = $class->set;
 
 	my $owner = delete $insert->{owner} or panic;
+warn "ASSET CREATE OWNER ", $owner->id;
 	$insert->{ownerid}   = $owner->id;
 
 	$class->SUPER::create($insert, %args);
@@ -138,6 +139,18 @@ sub delete()
 {	my $self = shift;
 warn "Removing asset ".$self->id;
 	$self->_remove($self);
+}
+
+sub forGrant(@)
+{	my $self = shift;
+	#!!! The id and created are usually not passed.
+
+	$self->SUPER::forGrant(
+		status  => $self->status,
+		expires => $self->expires,
+		updated => $self->updated,
+		@_,
+	);
 }
 
 1;

@@ -21,6 +21,12 @@ tables for proofs, contracts, and services.
 =item * M<ConnectConsole::Model::Connect>
 tables for appsessions and complies.
 
+=item * M<OwnerConsole::Model::Batch>
+tables for emails, invites, challenges.
+
+=item * M<OwnerConsole::Model::Client>
+tables for the client demo.
+
 =back
 
 =chapter METHODS

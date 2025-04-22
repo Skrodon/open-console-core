@@ -29,20 +29,21 @@ sub create($%)
 =section Attributes
 =cut
 
-sub schema()  { '20240218' }
-sub element() { 'website'  }
-sub set()     { 'websites' }
-sub elemName(){ __"Website" }
-sub setName() { __"Websites" }
-sub iconFA()  { 'fa-solid fa-file-circle-plus' }
+sub schema()   { '20240218' }
+sub element()  { 'website'  }
+sub set()      { 'websites' }
+sub elemName() { __"Website" }
+sub setName()  { __"Websites" }
+sub iconFA()   { 'fa-solid fa-file-circle-check' }
 
-sub website() { $_[0]->_data->{website} }
+sub website()  { $_[0]->_data->{website} }
 *name = \&website;
 
 sub challenge()      { $_[0]->_data->{challenge} }
 
 sub verifyURL()      { $_[0]->_data->{verifyURL} || {}}
 sub verifyURLTrace() { $_[0]->_data->{verifyURLTrace} || []}
+sub allDNSSEC()      { $_[0]->verifyURL->{dns_check}{all_dnssec} }
 
 sub hostPunicode()   { $_[0]->verifyURL->{host_puny} }
 sub hostUTF8()       { $_[0]->verifyURL->{host_utf8} }
@@ -52,7 +53,19 @@ sub printableURL()   { $_[0]->verifyURL->{url_printable} }
 sub proofTrace()     { $_[0]->_data->{proofTrace} || [] }
 
 #-------------
-=section Other
+=section Data
+=cut
+
+sub forGrant(@)
+{	my $self = shift;
+	$self->SUPER::forGrant(
+		dnssec => bool($self->allDNSSEC),
+		@_,
+	);
+}
+
+#-------------
+=section Action
 =cut
 
 # See https://github.com/Skrodon/open-console-owner/wiki/Proof-Website-Ownership/
@@ -63,10 +76,7 @@ sub score(%)
 	$self->status eq 'proven' or return 0;
 
 	my $score = 0;
-
-	# Score the quality of the website URL
-	my $dnscheck = $self->verifyURL->{dns_check}; 
-	$score += 20 if $dnscheck->{all_dnssec};
+	$score   += 20 if $self->allDNSSEC;
 
 	my $study = $self->study;
 	$score += 40 if $study->{challenge};
@@ -89,10 +99,12 @@ questionable, no link will be made.
 
 sub link(;$)
 {	my ($self, $path) = @_;
-	! $self->hasExpired or return undef;
+	return undef if $self->hasExpired;
 
 	my $ws = $self->website;
-	! defined $path || ! length $path ? $ws : "$ws/$path" =~ s!/{2,}!/!gr;
+	defined $path && length $path or return $ws;
+
+	($ws =~ s!/$!!r) . '/' . ($path =~ s!^/!!r);
 }
 
 1;

@@ -8,9 +8,9 @@ use Log::Report 'open-console-core';
 
 use feature 'state';
 
-use List::Util  qw(first);
+use List::Util         qw(first);
 
-use OpenConsole::Util          qw(reseed_tokens);
+use OpenConsole::Util  qw(reseed_tokens to_secs);
 
 use Mango;
 use constant
@@ -98,10 +98,19 @@ sub startup
 
 	# Load configuration from hash returned by config file
 	my $config = $self->plugin('Config');
-	$config->{vhost} ||= 'https://' . $ENV{HTTP_HOST};
+warn "** STARTUP VHOST $config->{vhost}";
+	my $vhost  = $config->{vhost} ||= 'https://' . $ENV{HTTP_HOST};
 
 	### Configure the application
-	$self->secrets($config->{secrets});
+
+	if(my $s = $config->{sessions})   # not for tasks
+	{	my $sessions = $self->sessions;
+		$sessions->default_expiration(to_secs $s->{expiration} || 3600);
+		$sessions->cookie_domain($s->{cookie_domain} || 'open-console.eu');
+		$sessions->cookie_name($config->{squad});
+		$sessions->samesite('Lax');  # We share cookies between owner and connect servers
+		$self->secrets($s->{secrets});
+	}
 
 	srand;
 	Mojo::IOLoop->timer(0 => sub { srand; reseed_tokens });

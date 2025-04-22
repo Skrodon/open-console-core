@@ -85,7 +85,6 @@ sub orderedLang() { join ',', $_[0]->languages }
 
 sub nrIdentities { scalar $_[0]->identityIds }
 sub nrGroups     { scalar $_[0]->groupIds }
-sub link()       { '/dashboard/account/' . $_[0]->id }
 
 =method localTime $timestamp
 Convert a timestamp C<"YYYY-mm-DDTHH::MM::SSZ"> (as produced by M<OpenConsole::Util::timestamp()>)
@@ -380,6 +379,11 @@ sub save(%)
 		if $args{by_user};
 
 	$self->SUPER::save(%args);
+}
+
+sub forGrant(@)
+{	my $self = shift;
+	$self->SUPER::forGrant(instance => $self->createdOn, @_);
 }
 
 1;

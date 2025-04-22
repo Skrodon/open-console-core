@@ -5,10 +5,6 @@ package OpenConsole::Asset::Proof;
 use Mojo::Base 'OpenConsole::Asset';
 
 use Log::Report 'open-console-core';
-
-use Scalar::Util  qw(blessed);
-use DateTime      ();
-
 use OpenConsole::Util  qw(bson2datetime new_token);
 
 =chapter NAME
@@ -23,8 +19,8 @@ Base class for all kinds of proofs of ownership.
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
-	$insert->{status}    = 'unproven';
-	$insert->{score}     = 0;
+	$insert->{status} = 'unproven';
+	$insert->{score}  = 0;
 
 	my $self = $class->SUPER::create($insert, %args);
 	$self;
@@ -32,11 +28,49 @@ sub create($%)
 
 sub _summary(%)
 {	my $self = shift;
+	...;
 	$self->SUPER::_summary(@_);
 }
 
 #-------------
 =section Attributes
+
+=method invalidate
+=method accepted
+=methos isValid
+=cut
+
+sub invalidate() { $_[0]->setData(status => 'unproven') }
+sub accepted()   { $_[0]->setData(expires => undef, status => 'proven') }
+sub isValid()    { $_[0]->status eq 'proven' }   # expiration is checked at db-load
+
+#-------------
+=section Data
+
+=method algorithm
+=method algoVersion
+=method verified
+=cut
+
+sub study()      { $_[0]->_data->{study} || {} }
+sub algorithm()  { $_[0]->study->{algorithm} || 'none' }
+sub algoVersion(){ $_[0]->study->{version}   || 'error' }
+sub verified()   { $_[0]->study->{verified}  || 'error' }
+
+sub forGrant(@)
+{	my $self = shift;
+	$self->SUPER::forGrant(
+		name         => $self->name,
+		asset        => $self->element,
+		algorithm    => $self->algorithm,
+		algo_version => $self->algoVersion,
+		score        => $self->score,
+		@_,
+	);
+}
+
+#-------------
+=section Action
 
 =method score %options
 Rate the quality of the proof.  The higher the value, the better the
@@ -47,23 +81,6 @@ by the Service.  Therefore, the C<score> needs to be recomputed often.
 =cut
 
 sub score() { panic "must be extended" }
-
-#-------------
-=section Maintainance
-=cut
-
-sub study()       { $_[0]->_data->{study} || {} }
-sub algorithm()   { $_[0]->study->{algorithm} || 'none' }
-sub algoVersion() { $_[0]->study->{version}   || 'error' }
-sub verified()    { $_[0]->study->{verified}  || 'error' }
-
-sub invalidate() { $_[0]->setData(status => 'unproven') }
-sub accepted()   { $_[0]->setData(expires => undef, status => 'proven') }
-sub isValid()    { $_[0]->status eq 'proven' }   # expiration is checked at db-load
-
-#-------------
-=section Action
-=cut
 
 sub _load($)  { $::app->assets->proof($_[1]) }
 sub _remove() { $::app->assets->removeProof($_[0]) }

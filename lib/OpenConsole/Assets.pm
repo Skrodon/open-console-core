@@ -12,6 +12,7 @@ use OpenConsole::Proof::EmailAddr ();
 use OpenConsole::Proof::Website   ();
 use OpenConsole::Asset::Contract  ();
 use OpenConsole::Asset::Service   ();
+use OpenConsole::Util             qw(sorted);
 
 # All ::Proof:: extends ::Asset
 my %asset_class = (
@@ -20,6 +21,8 @@ my %asset_class = (
 	contracts  => 'OpenConsole::Asset::Contract',
 	services   => 'OpenConsole::Asset::Service',
 );
+
+my @proof_sets = qw/emailaddrs websites/;
 
 =chapter NAME
 OpenConsole::Assets - handling sets of Assets
@@ -34,11 +37,26 @@ Manage a set of assets for an owner, which could be an Account, an
 
 #------------------
 =section Attributes
+
+=method owner
+Returns the owner object for this asset.
 =cut
 
 has owner => sub { error "Requires owner" }, weak => 1;
 
+=method assetClass $set
+Translates a asset group name into the package which implements the
+asset.
+=cut
+
 sub assetClass($) { $asset_class{$_[1]} }
+
+=ci_method proofSets
+Returns a list of all implemented proof types.  They are in the preferred
+order of display.
+=cut
+
+sub proofSets()   { @proof_sets }
 
 #------------------
 =section Ownership
@@ -77,13 +95,12 @@ sub _set($)
 sub for($;$)
 {	my $self = shift;
 	my $set  = $self->_set(shift);
-	return sort { $a->sort cmp $b->sort } values %$set
-		unless @_;
+	@_ or return sorted values %$set;
 
 	my $idid = shift || 'undef';
 	$idid    = $idid->id if blessed $idid;
 
-	sort { $a->sort cmp $b->sort }
+	sorted
 		grep +($_->identityId || 'undef') eq $idid,
 			values %$set;
 }

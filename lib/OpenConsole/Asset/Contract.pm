@@ -48,14 +48,43 @@ sub iconFA()   { 'fa-solid fa-handshake-simple' }
 
 =method isSigned
 Returns a HASH which explains how the contract was signed.
-sub isSigned() { $_[0]->_data->{signed} }
+=cut
 
-sub serviceId() { $_[0]->_data->{serviceid} }
-sub agreedAnnex()     { $_[0]->_data->{annex} }
-sub agreedTerms()     { $_[0]->_data->{terms} }
+sub isSigned()    { $_[0]->_data->{signed} }
+
+sub serviceId()   { $_[0]->_data->{serviceid} }
+sub agreedAnnex() { $_[0]->_data->{annex} }
+sub agreedTerms() { $_[0]->_data->{terms} }
 sub acceptedLicense() { $_[0]->_data->{license} }
-sub presel($)         { $_[0]->_data->{presel}{$_[1]} ||= {} }
-sub service()  { $_[0]->{OAC_service} ||= $::app->assets->service($_[0]->serviceId) }
+sub presel($)     { $_[0]->_data->{presel}{$_[1]} ||= {} }
+sub service()     { $_[0]->{OAC_service} ||= $::app->assets->service($_[0]->serviceId) }
+
+sub complyLink    { '/dashboard/comply/' . $_[0]->id }
+
+#------------------------
+=section Data
+=cut
+
+sub forGrant(@)
+{	my $self = shift;
+	$self->SUPER::forGrant(
+		id        => $self->id,  # this can be used by the app
+		signed_on => $self->isSigned->{when},
+		@_,
+	);
+}
+
+=method sign $account
+Register that this contract is signed by the logged-in account.
+=cut
+
+sub sign($) { $_[0]->setData(status => 'signed', signed => +{ when => timestamp, by => $_[1]->id }) }
+
+=method invalidate
+Revoke the signature.
+=cut
+
+sub invalidate() { $_[0]->setData(status => 'incomplete', signed => undef) }
 
 #-------------
 =section Action
@@ -70,15 +99,5 @@ sub save(%)
 	$self->setData(id => new_token 'C') if $self->isNew;
 	$self->SUPER::save(%args);
 }
-
-=method sign $account
-Register that this contract is signed by the logged-in account.
-
-=method invalidate
-Revoke the signature.
-=cut
-
-sub sign($) { $_[0]->setData(status => 'signed', signed => +{ when => timestamp, by => $_[1]->id }) }
-sub invalidate() { $_[0]->setData(status => 'incomplete', signed => undef) }
 
 1;

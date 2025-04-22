@@ -12,9 +12,31 @@ use OpenConsole::Util   qw(:time);
 =chapter NAME
 OpenConsole::Mango::Object - base for any database storable object
 
+=chapter SYNOPSIS
+  # Do only instantiate extensions of this class
+
+=chapter DESCRIPTION
+
+This base module implements everything which is offered by any object
+which gets stored in the database.  For the moment --as the name of the
+module says-- in a MongoDB database, but prepared to be converted into
+a CouchDB database.
+
+All these objects have attributes which may be stored in the database,
+and attributes which are not stored in the database.  The former are
+kept in a sub-HASH named C<_data>.  The other attributes are on the
+top level of the object HASH.  Thou SHALL NOT address the fields of
+the object HASH: only use accessors!
+
+OpenConsole tries to avoid the Mojo::Base accessor generators, because
+it is not flexible enough.
+
 =chapter METHODS
 
 =section Constructors
+
+=c_method new %options
+The C<new()> method is provided by M<Mojo::Base>.
 
 =c_method fromDB \%data, %options
 Revive this object from its database storage.  The %options are passed
@@ -31,7 +53,8 @@ sub fromDB($%)
 {	my ($class, $data, %args) = @_;
 	my $self = $class->new(_data => $data, %args);
 use Data::Dumper;
-warn "MO($class) FromDB:", Dumper $data;
+#warn "Mongo::fromDB($class) = ", Dumper $data;
+warn "Mongo::fromDB($class) = ", $self->name, "\n";
 
 	$self->setData(status => 'expired')
 		if $self->status ne 'expired' && $self->hasExpired;
@@ -58,7 +81,15 @@ sub create($%)
 	$insert->{id}      ||= 'new';
 	$insert->{schema}  ||= $class->schema;
 	$insert->{status}  ||= 'new';
-	$insert->{created} ||= timestamp;
+	$insert->{created} ||= timestamp($insert->{created})  || timestamp;
+
+	if(my $ex = delete $insert->{expiration})
+	{	$insert->{expires} = timestamp(now + duration($ex));
+	}
+	else
+	{	$insert->{expires} = timestamp($insert->{expires});
+	}
+
 	$class->new(_data => $insert, %args);
 }
 
@@ -82,7 +113,8 @@ The type of element this object presents.
 The display of a single element in this set.
 
 =ci_method schema
-The version of the current implementation
+The version of the current running implementation of the object.  This may differ
+from the object's version which comes from store.
 =cut
 
 sub schema()  { '' }    # some objects will not be saved
@@ -97,6 +129,7 @@ The unique identifier for this object.  It is even unique within the whole
 program and database.
 
 =method name
+The name gets displayed to the user.
 
 =method created
 The moment of creation of the object.
@@ -106,16 +139,26 @@ Moment of last save.
 =cut
 
 # Mongo: When an object has been created, its id is not in _id
-sub id()      { $_[0]->_data->{id} }
-sub name()    { $_[0]->_data->{name} }
-sub created() { my $c = $_[0]->_data->{created}; $c ? $c->to_datetime : undef }
-sub updated() { $_[0]->_data->{updated} }
+sub id()       { $_[0]->_data->{id} }
+sub name()     { $_[0]->_data->{name} }
+sub created()  { $_[0]->_data->{created} }
+sub updated()  { $_[0]->_data->{updated} || $_[0]->created }
+
+=method createdDT
+Returns the M<created()> time as a M<DateTime> object.
+=method updatedDT
+Returns the M<updated()> time as a M<DateTime> object.
+=cut
+
+sub createdDT(){ $_[0]->{OMO_cdt} ||= timestamp2dt($_[0]->created) }
+sub updatedDT(){ $_[0]->{OMO_udt} ||= timestamp2dt($_[0]->updated) }
 
 #-------------
 =section Maintainance
 
-=method sort
-The key to be used when sorting this kind of objects.
+=method sorter
+The key to be used when sorting this kind of objects.  Efficiently
+used my M<OpenConsole::Util::sorted()>.
 
 =method isNew
 Whether the object was already saved.
@@ -124,7 +167,7 @@ Whether the object was already saved.
 Produce the (site absolute) URL which brings you to the object.
 =cut
 
-sub sort()     { lc $_[0]->name }
+sub sorter()   { lc $_[0]->name }
 sub isNew()    { $_[0]->id eq 'new' }
 sub elemLink() { '/dashboard/' . $_[0]->element . '/' . $_[0]->id }
 
@@ -137,7 +180,7 @@ Expired assets may be removed from the database, after some time.
 sub hasExpired()
 {	my $self = shift;
 	return $self->{OMO_dead} if exists $self->{OMO_dead};
-return 0;
+return 0;  #XXX
 	my $exp  = $self->expires;
 	$self->{OMO_dead} = defined $exp ? $exp < now : 0;
 }
@@ -152,13 +195,22 @@ sub expires()
 	return $self->{OMO_exp} if exists $self->{OMO_exp};
 
 	my $exp = $self->_data->{expires};
-	$self->{OMO_exp} = $exp ? bson2datetime($exp, $self->timezone) : undef;
+	$self->{OMO_exp} = $exp ? timestamp2dt($exp) : undef;
 }
 
 =method status
+Returns the status of the object.  Which statusses are available depends on the
+object class.  M<OpenConsole::Controller::badge()> usually has a translation
+for the status name.
 =cut
 
 sub status()     { $_[0]->_data->{status} }
+
+=method createdOn
+Reports the service abbreviation included in the M<id()>.
+=cut
+
+sub createdOn()  { $_[0]->id =~ s/\:.*//r }
 
 #------------------------
 =section Data
@@ -166,12 +218,6 @@ sub status()     { $_[0]->_data->{status} }
 
 # hidden for anything else than the core data objects.
 has _data => sub { +{} };
-
-=method toDB
-Convert the crucial object data into a structure to be saved in the database.
-=cut
-
-sub toDB()       { $_[0]->_data }  #XXX might become more complex later
 
 =method changed
 Flags that the data has been changed.
@@ -185,7 +231,7 @@ sub hasChanged() { !! $_[0]->{OMO_changed} }
 
 =method setData @pairs
 Replace one or more values.  Each @pair is a field-name and the new value.
-Returned is the number of changes.
+Returned is the number of changes.  Old field values are replaced.
 
 When any of the values is different than the old value for that field, or
 when that field did not exist yet, then the C<changed> flag will be set.
@@ -217,11 +263,12 @@ Add zero or more @elements to the $queue.
 
 sub pushData($@)
 {	my ($self, $queue) = (shift, shift);
-	@_ or return;
+	@_ or return 0;
 
 	my $array = $self->_data->{$queue} ||= [];
 	push @$array, @_;
 	$self->changed;
+	1;
 }
 
 =method summary %options
@@ -229,6 +276,7 @@ Returns the summary data for this object.  When it is not available
 yet, it will get create.
 =cut
 
+#XXX under development
 sub summary(%)  { $_[0]->{OMO_sum} ||= +{ $_[0]->_summary } }
 
 sub _summary()
@@ -236,8 +284,25 @@ sub _summary()
 	(id => $self->id);
 }
 
+=method forGrant @pairs
+Returns a HASH which contains information published to service
+providers.  The C<@pairs> are added to the HASH.
+=cut
+
+sub forGrant(@)
+{	my $self = shift;
+	+{ @_ };
+}
+
 #------------------------
 =section Logging
+Logging inside the object is (currently) disabled, because the objects
+get pretty extra large.  When not used, we can better not take the
+performance hit.
+
+=method logging %options
+=requires after DATE
+=requires before DATE
 =cut
 
 sub logging(%)
@@ -256,6 +321,10 @@ sub logging(%)
 	\@lines;
 }
 
+=method log \%data|$text
+Create a log line.
+=cut
+
 sub log($)
 {	my ($self, $insert) = @_;
 	$insert = { text => $insert } unless ref $insert eq 'HASH';
@@ -263,7 +332,7 @@ warn "LOGGING: ", $insert->{text}, "\n";
 return;
 	$insert->{timestamp} //= Mango::BSON::Time->new;
 #	$insert->{user}      //= $::app->user->username;
-	push @{$self->_data->{logging}}, $insert;
+	$self->pushData(logging => $insert);
 }
 
 #------------------------
@@ -281,6 +350,21 @@ warn "Remove ".$self->element." ".$self->id;
 	$self->_remove;
 }
 
+=method toDB
+Convert the crucial object data into a structure to be saved in the database.
+=cut
+
+sub toDB()
+{	my $self = shift;
+	my $data = $self->_data;
+	if(my $e = $data->{expires})
+	{	$data->{_expires} = timestamp2bson $e;
+	}
+
+	$data;
+}
+
+
 =method save %options
 Save this object to the database.  This may trigger the Summary to expire.
 
@@ -293,13 +377,16 @@ means "up to date".  Therefore, the schema version gets reset.
 sub save(%)
 {	my ($self, %args) = @_;
 
-	$self->setData(updated => now);
+	$self->setData(updated => timestamp);
 	$self->setData(schema  => $self->schema) if $args{by_user};
 
 warn "Save ".$self->element." ".$self->id;
+use Data::Dumper;
+warn Dumper $self->_data;
 
 	# The actual saving of this object
 	$self->_save;
+	$self;
 }
 
 #XXX!!! use the next three with <%== !!! (double =)

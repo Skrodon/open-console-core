@@ -119,6 +119,7 @@ sub _upgrade_contracts()
 
 sub contractsForOwner($$)
 {	my ($self, $set, $owner) = @_;
+	# $set is always 'contract'
 	my $contracts = $self->contracts->find({ownerid => $owner->id, set => $set})->all;
 	map OpenConsole::Assets->assetFromDB($_), @$contracts;
 }
@@ -184,10 +185,7 @@ enabled services (also sorted by name)
 sub publicServiceIndex()
 {	my ($self, %args) = @_;
 	my %owners;
-warn "#1";
 	my $services = $self->proofs->find({ set => 'services', status => 'public' })->all;
-use Data::Dumper;
-warn "#2 ", Dumper $services;
 	push @{$owners{$_->{ownerid}}{services}}, +{ id => $_->{id}, name => $_->{name} }
 		for @$services;
 

@@ -23,22 +23,25 @@ identity.
 =section Constructors
 
 =c_method create $insert, %options
-=requires contract $id|$contract 
+=requires contract $contract 
 
-=option  service $id|$service
+=option  service $service
 =default service C<$contract->serviceId>
+
+=option  give HASH
+=default give +{ }
 =cut
 
 sub create($%)
 {	my ($class, $insert, %args) = @_;
-	$insert->{id}      ||= new_token 'T';
-	$insert->{expires} ||= '2027-01-01T00:00:00Z';
+	$insert->{expires}  ||= '2027-01-01T00:00:00Z';
+	$insert->{give}     ||= {};
 
 	my $contract          = delete $insert->{contract} or panic;
-	$insert->{serviceid} = blessed $contract ? $contract->id : $contract;
+	$insert->{contractid} = blessed $contract ? $contract->id : $contract;
 
-	my $service          = delete $insert->{service} || $contract->serviceId;
-	$insert->{serviceid} = blessed $service ? $service->id : $service;
+	my $service           = delete $insert->{service} || (blessed $contract ? $contract->service : panic);
+	$insert->{serviceid}  = blessed $service ? $service->id : $service;
 
 	my $self = $class->SUPER::create($insert, %args);
 	$self;
@@ -48,9 +51,12 @@ sub create($%)
 =section Attributes
 =cut
 
-sub schema()      { '20241001' }
-sub set()         { 'complies' }
-sub element()     { 'comply'  }
+sub schema()   { '20241001' }
+sub set()      { 'complies' }
+sub element()  { 'comply'  }
+sub setName()  { __"Complies" }
+sub elemName() { __"Comply" }
+sub iconFA()   { 'fa-solid fa-share' }
 
 =method contractId
 =method contract [$contractId]
@@ -69,6 +75,28 @@ sub contract()   { $_[0]->{CC_contr} ||= $::app->assets->contract($_[1] || $_[0]
 sub serviceId()  { $_[0]->_data->{serviceid} }
 sub service()    { $_[0]->{CC_serv}  ||= $::app->assets->service($_[1] || $_[0]->serviceId) }
 
+=method giveFacts
+Return a HASH with the facts collected to be sent to the Application.  When nothing is
+selected yet, then an empty HASH is returned.
+=cut
+
+sub giveFacts() { $_[0]->_data->{give} }
+
+=method endpoint
+Where we login, an absolute URL string pointing to the application.
+=cut
+
+sub endpoint($)  { '/client/service';
+	# $_[0]->_data->{endpoint};
+}
+
+=method grant
+The basic template for the grant, created by M<OpenConsole::Controller::Comply> method
+C<_prepareGrant()>.
+=cut
+
+sub grant() { $_[0]->_data->{grant} }
+
 #------------------
 =section Actions
 =cut
@@ -76,5 +104,24 @@ sub service()    { $_[0]->{CC_serv}  ||= $::app->assets->service($_[1] || $_[0]-
 sub _load($)  { $::app->connect->comply($_[1]) }
 sub _remove() { $::app->connect->removeComply($_[0]) }
 sub _save()   { $::app->connect->saveComply($_[0]) }
+
+sub save(%)
+{	my ($self, %args) = @_;
+	$self->setData(id => new_token 'R') if $self->isNew;
+warn "COMPLY ID = ", $self->id;
+	$self->SUPER::save(%args);
+}
+
+=method makeGrant %options
+The grant object is not stored as such, but a JSON compliant HASH generated each time
+it gets requested.  The comply process has collected all the required data, but not in
+the definitive JSON structure.
+=cut
+
+sub makeGrant(%)
+{	my ($self, %options) = @_;
+	my $prepared = $self->grant;
+	$prepared;
+}
 
 1;

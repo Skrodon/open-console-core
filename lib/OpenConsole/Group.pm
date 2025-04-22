@@ -13,9 +13,11 @@ use OpenConsole::Util     qw(new_token);
 use OpenConsole::Assets   ();
 
 =chapter NAME
-OpenConsole::Group - Manage a group of users
+OpenConsole::Group - Manage a group of identities
 
 =chapter DESCRIPTION
+People can work together in groups: they pick one of their identities
+to join a group... by email invitation only.
 
 =chapter METHODS
 
@@ -75,8 +77,6 @@ sub organization() { $_[0]->_data->{organization} }
 sub phone()      { $_[0]->_data->{phone} }
 sub postal()     { $_[0]->_data->{postal} }
 sub timezone()   { $_[0]->_data->{timezone} }
-
-sub link()       { '/dashboard/group/' . $_[0]->id }
 
 #-------------
 =section Accepted Members

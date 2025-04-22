@@ -4,7 +4,7 @@
 package OpenConsole::Session::Ajax;
 use Mojo::Base 'OpenConsole::Session';
 
-use Log::Report 'open-console-owner', import => [ qw/__x/ ];
+use Log::Report 'open-console-owner', import => [ qw/__x panic/ ];
 
 use OpenConsole::Util qw(val_line);
 
@@ -157,9 +157,7 @@ sub mergeTaskResults($)
 {	my ($self, $task) = @_;
 	my $to   = $self->_data;
 	my $from = $task->_data;
-use Data::Dumper;
-warn "MERGING", Dumper $to, $from;
-	push @{$to->{$_}}, @{$from->{$_}} for qw/warnings errors notifications internal_errors trace/;
+	push @{$to->{$_}}, @{$from->{$_}} for qw/warnings errors infos goods notifications internal_errors trace/;
 	$self;
 }
 

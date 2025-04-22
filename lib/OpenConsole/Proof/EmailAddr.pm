@@ -5,11 +5,14 @@ package OpenConsole::Proof::EmailAddr;
 use Mojo::Base 'OpenConsole::Asset::Proof';
 
 use Log::Report 'open-console-core';
+use OpenConsole::Util   qw(bool);
 
 =chapter NAME
 OpenConsole::Proof::EmailAddr - collectable proof of website ownership
 
 =chapter DESCRIPTION
+This class maintains an email-address proof.
+
 =chapter METHODS
 =section Constructors
 =cut
@@ -24,22 +27,34 @@ sub create($%)
 =section Attributes
 =cut
 
-sub schema()  { '20240210' }
-sub element() { 'emailaddr'  }
-sub set()     { 'emailaddrs' }
-sub elemName(){ __"Email address" }
-sub setName() { __"Email addresses" }
-sub iconFA()  { 'fa-solid fa-envelope-circle-check' }
+sub schema()   { '20240210' }
+sub element()  { 'emailaddr'  }
+sub set()      { 'emailaddrs' }
+sub elemName() { __"Email address" }
+sub setName()  { __"Email addresses" }
+sub iconFA()   { 'fa-solid fa-envelope-circle-check' }
 
-sub email()   { $_[0]->_data->{email} }
+sub email()    { $_[0]->_data->{email} }
 *name = \&email;
 
 sub supportsSubAddressing() { $_[0]->_data->{sub_addressing} }
 
 #-------------
-=section Other
+=section Data
 =cut
 
-sub score()   { 50 }
+sub forGrant(@)
+{	my $self = shift;
+	$self->SUPER::forGrant(
+		supports_sub_addressing => bool($self->supportsSubAddressing),
+		@_,
+	);
+}
+
+#-------------
+=section Action
+=cut
+
+sub score()   { $_[0]->isValid ? 50 : 0 }
 
 1;

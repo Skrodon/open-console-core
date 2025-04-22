@@ -62,7 +62,7 @@ DISTDIR         = /home/markov/shared/perl/public_html/open-console-core/source
 # for POD
 FIRST_YEAR      = 2024
 EMAIL           = mark@open-console.eu
-EXTENDS         = ../open-console-owner:../open-console-tasks:../open-console-connect
+EXTENDS         = ../open-console-owner:../open-console-tasks:../open-console-connect:/g/Mojolicious-Plugin-OpenConsole
 WEBSITE         = http://perl.overmeer.net/open-console
 
 # for HTML

@@ -9,7 +9,7 @@ use Log::Report  'open-console-core', import => [ qw/panic/ ];  # 'trace' name c
 use Scalar::Util qw(blessed);
 use Time::HiRes  qw(time);
 
-my @messages = qw/warnings errors notifications internal_errors trace/;
+my @messages = qw/warnings errors infos goods notifications internal_errors trace/;
 
 =chapter NAME
 
@@ -37,7 +37,6 @@ response, hence objects will not survive.
 sub create(;$%)
 {	my $class = shift;
 	my $data  = shift // { };
-ref $data eq 'HASH' or panic;
 	$data->{$_} ||= [ ] for @messages;
 	$class->SUPER::create($data, @_);
 }
@@ -74,8 +73,14 @@ sub addWarning($$)
 
 sub addInfo($$)
 {	my ($self, $field, $info) = @_;
-	$self->pushData(info => [ $field => blessed $info ? $info->toString($self->lang) : $info ]);
+	$self->pushData(infos => [ $field => blessed $info ? $info->toString($self->lang) : $info ]);
 	$self->_trace('info: ' . $info->toString);
+}
+
+sub addGood($$)
+{	my ($self, $field, $good) = @_;
+	$self->pushData(goods => [ $field => blessed $good ? $good->toString($self->lang) : $good ]);
+	$self->_trace('good: ' . $good->toString);
 }
 
 sub notify($$)

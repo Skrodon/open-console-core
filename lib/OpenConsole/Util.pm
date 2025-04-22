@@ -72,6 +72,7 @@ our @EXPORT_OK = (@is_valid, @validators, @bool, @tokens, @time, qw(
 	verify_secret
 	is_private_ipv4
 	is_private_ipv6
+	sorted
 	url
 ));
 
@@ -95,6 +96,16 @@ Flatten ARRAYs into elements, and remove undefined elements from the list.
 =cut
 
 sub flat(@) { grep defined, map ref eq 'ARRAY' ? @$_ : $_, @_ }
+
+=function sorted @objects
+Return a sorted list of C<@objects>.  Each object implements a C<sorter()>
+method, by default based on the object's name.
+=cut
+
+sub sorted(@)
+{	my %objs = map +($_->sorter => $_), @_;
+	@objs{sort keys %objs};
+}
 
 #----------
 =section Validation
@@ -176,7 +187,9 @@ sub now() { DateTime->now(time_zone => 'Z') }
 =cut
 
 sub timestamp(;$)
-{	my $stamp = @_ ? (shift->set_time_zone('Z')) : now();
+{	my $stamp = ! @_ ? now : defined $_[0] ? $_[0] : return undef;
+	return $stamp unless blessed $stamp && $stamp->isa('DateTime');
+	$stamp->set_time_zone('Z');
 	$stamp->iso8601 . 'Z';
 }
 
@@ -268,11 +281,15 @@ sub token_infix($)    { $_[0] =~ m!\:(.)\:! ? $1 : undef }
 sub token_set($)      { my $i = token_infix $_[0]; $i ? $token_infixes{$i}[0] : undef }
 sub token_class($)    { my $i = token_infix $_[0]; $i ? $token_infixes{$i}[1] : undef }
 
-=function bearer_token $string
-Extract a bearer token from a string (extracted from the Authentication header).
+=function bearer_token $request
+Extract a bearer token from the Authentication header.
 =cut
 
-sub bearer_token($)   { defined $_[0] && $_[0] =~ m!^Bearer\s+([a-zA-Z0-9:]{1,100})$! ? $1 : undef }
+sub bearer_token($)
+{	my $req  = shift or return;
+	my $auth = $req->headers->authorization or return;
+	$auth =~ m!^Bearer\s+([a-zA-Z0-9:]{1,100})$! ? $1 : undef;
+}
 
 #-----------
 =section Browser client
